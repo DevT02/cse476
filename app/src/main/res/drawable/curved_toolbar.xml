@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Set the background color -->
+    <solid android:color="?attr/colorPrimary" />
+
+    <!-- Adjust the corners to make the top-left and top-right corners curved -->
+    <corners
+        android:topLeftRadius="30dp"
+        android:topRightRadius="30dp"
+        android:bottomLeftRadius="0dp"
+        android:bottomRightRadius="0dp" />
+
+</shape>

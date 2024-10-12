@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- Curved Toolbar with logout and settings buttons -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="63dp"
+        android:background="@drawable/curved_toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" >
+
+        <!-- LinearLayout to place both buttons on the left -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start">
+
+            <!-- Logout button on the left -->
+            <ImageButton
+                android:id="@+id/btn_logout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_logout"
+                android:contentDescription="@string/log_out"
+                android:layout_gravity="start"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <!-- Settings button next to Logout -->
+            <ImageButton
+                android:id="@+id/btn_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/settings_desc"
+                android:src="@drawable/ic_settings"
+                android:layout_marginStart="16dp"/>
+
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <!-- Welcome Message with relevant information -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        android:padding="24dp"
+        android:gravity="center">
+
+        <!-- Welcome Message -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/greetings_user"
+            android:textSize="40sp"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- App Updates or Relevant Information -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/temp_main_fill"
+            android:textSize="16sp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

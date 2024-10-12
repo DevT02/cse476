@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bottom navigation menu items -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_create_event"
+        android:title="@string/create_event"
+        android:icon="@drawable/create" />
+    <item
+        android:id="@+id/nav_find_groups"
+        android:title="@string/nav_explore"
+        android:icon="@drawable/groups" />
+</menu>

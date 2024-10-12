@@ -1,0 +1,292 @@
+package com.example.studylink.activities;
+
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.example.studylink.HomeActivity;
+import com.example.studylink.R;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class ProfileActivity extends AppCompatActivity {
+    private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 100;
+
+    // ui elements
+    private ImageView profilePicture;
+    private EditText inputName, inputEmail, inputInterests, inputContactLink, inputClasses, inputBio;
+    private SwitchMaterial switchGPA, switchAvailability, switchNotifications;
+    private Button btnUploadImage, btnSaveChanges, btnLogOut;
+
+    private Uri profileImageUri;
+    private static final String PROFILE_IMAGE_URI_KEY = "profile_image_uri";
+
+    // activity result launcher for image picking
+    private ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri selectedImageUri = result.getData().getData();
+                    if (selectedImageUri != null) {
+                        copyImageToInternalStorage(selectedImageUri);
+                    }
+                }
+            }
+    );
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_profile);
+
+        // Set up the toolbar with back button
+        Toolbar toolbar = findViewById(R.id.toolbar_profile);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Enable the back button
+        }
+
+        // initialize ui elements
+        profilePicture = findViewById(R.id.profilePicture);
+        btnUploadImage = findViewById(R.id.btnUploadImage);
+        inputName = findViewById(R.id.inputName);
+        inputEmail = findViewById(R.id.inputEmail);
+        inputInterests = findViewById(R.id.inputInterests);
+        inputContactLink = findViewById(R.id.inputContactLink);
+        inputClasses = findViewById(R.id.inputClasses);
+        inputBio = findViewById(R.id.inputBio);
+        switchGPA = findViewById(R.id.switchGPA);
+        switchAvailability = findViewById(R.id.switchAvailability);
+        switchNotifications = findViewById(R.id.switchNotifications);
+        btnSaveChanges = findViewById(R.id.btnSaveChanges);
+        btnLogOut = findViewById(R.id.btnLogOut);
+
+        // restore profile image uri if available
+        if (savedInstanceState != null) {
+            profileImageUri = savedInstanceState.getParcelable(PROFILE_IMAGE_URI_KEY);
+            if (profileImageUri != null) {
+                setImageUri(profileImageUri);
+            }
+        }
+
+        // load user data
+        loadUserData();
+
+        // set click listeners
+        btnUploadImage.setOnClickListener(v -> requestStoragePermission());
+        btnSaveChanges.setOnClickListener(v -> saveUserData()); // Update to navigate to HomeActivity
+        btnLogOut.setOnClickListener(v -> {
+            SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("isLoggedIn", false);
+            editor.apply();
+
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+    // Handle the back button click in the toolbar
+    @Override
+    public boolean onOptionsItemSelected(android.view.MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // Navigate back to HomeActivity when the back button is pressed
+            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish(); // End the current activity
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // request storage permission
+    private void requestStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_MEDIA_IMAGES},
+                        REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+            } else {
+                openImagePicker();
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+            } else {
+                openImagePicker();
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // permission granted, proceed with image loading
+                openImagePicker();
+            } else {
+                Toast.makeText(this, "Permission denied to read external storage", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (profileImageUri != null) {
+            outState.putParcelable(PROFILE_IMAGE_URI_KEY, profileImageUri);
+        }
+    }
+
+    // open image picker
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+        pickImageLauncher.launch(intent);
+    }
+
+    // set image uri to the imageview safely
+    private void setImageUri(Uri uri) {
+        try {
+            Log.d("ProfileActivity", "Attempting to load image Uri: " + uri.toString());
+            ContentResolver contentResolver = getContentResolver();
+            InputStream inputStream = contentResolver.openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+            profilePicture.setImageBitmap(bitmap);
+        } catch (SecurityException e) {
+            Log.e("ProfileActivity", "SecurityException when loading image Uri: " + uri.toString());
+            Toast.makeText(this, "Error loading image: Permission Denied", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e("ProfileActivity", "General Exception when loading image Uri: " + uri.toString());
+            Toast.makeText(this, "Error loading image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // save profile image uri
+    private void saveProfileImageUri(Uri uri) {
+        SharedPreferences preferences = getSharedPreferences("user_profile", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(PROFILE_IMAGE_URI_KEY, uri.toString());
+        editor.apply();
+        Log.d("ProfileActivity", "Saved profile image URI: " + uri.toString());
+    }
+
+    // copy image to internal storage
+    private void copyImageToInternalStorage(Uri sourceUri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(sourceUri);
+            File destinationFile = new File(getFilesDir(), "profile_picture.jpg");
+
+            if (destinationFile.exists()) {
+                destinationFile.delete();
+            }
+
+            OutputStream outputStream = new FileOutputStream(destinationFile);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            outputStream.close();
+            inputStream.close();
+            profileImageUri = Uri.fromFile(destinationFile);
+            profilePicture.setImageURI(null);
+            profilePicture.setImageURI(profileImageUri);
+            saveProfileImageUri(profileImageUri);
+            Log.d("ProfileActivity", "Image copied successfully. URI: " + profileImageUri.toString());
+
+        } catch (Exception e) {
+            Log.e("ProfileActivity", "Error copying image: " + e.getMessage());
+            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // load user data
+    private void loadUserData() {
+        SharedPreferences preferences = getSharedPreferences("user_profile", MODE_PRIVATE);
+        inputName.setText(preferences.getString("user_name", ""));
+        inputEmail.setText(preferences.getString("user_email", ""));
+        inputInterests.setText(preferences.getString("user_interests", ""));
+        inputContactLink.setText(preferences.getString("user_contact_link", ""));
+        inputClasses.setText(preferences.getString("user_classes", ""));
+        inputBio.setText(preferences.getString("user_bio", ""));
+        switchGPA.setChecked(preferences.getBoolean("gpa_visible", false));
+        switchAvailability.setChecked(preferences.getBoolean("availability", true));
+        switchNotifications.setChecked(preferences.getBoolean("notifications_enabled", true));
+
+        String imageUriString = preferences.getString(PROFILE_IMAGE_URI_KEY, null);
+        if (imageUriString != null) {
+            File imageFile = new File(Uri.parse(imageUriString).getPath());
+            if (imageFile.exists()) {
+                profileImageUri = Uri.fromFile(imageFile);
+                profilePicture.setImageURI(profileImageUri);
+            } else {
+                // if file doesn't exist, reset to default
+                profilePicture.setImageResource(R.drawable.default_profile);
+                preferences.edit().remove(PROFILE_IMAGE_URI_KEY).apply();
+            }
+        } else {
+            profilePicture.setImageResource(R.drawable.default_profile);
+        }
+    }
+
+    // save user data and navigate to HomeActivity
+    private void saveUserData() {
+        SharedPreferences preferences = getSharedPreferences("user_profile", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("user_name", inputName.getText().toString());
+        editor.putString("user_email", inputEmail.getText().toString());
+        editor.putString("user_interests", inputInterests.getText().toString());
+        editor.putString("user_contact_link", inputContactLink.getText().toString());
+        editor.putString("user_classes", inputClasses.getText().toString());
+        editor.putString("user_bio", inputBio.getText().toString());
+        editor.putBoolean("gpa_visible", switchGPA.isChecked());
+        editor.putBoolean("availability", switchAvailability.isChecked());
+        editor.putBoolean("notifications_enabled", switchNotifications.isChecked());
+
+        if (profileImageUri != null) {
+            editor.putString(PROFILE_IMAGE_URI_KEY, profileImageUri.toString());
+        }
+
+        editor.apply();
+        Toast.makeText(ProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+
+        // Navigate to HomeActivity after saving
+        Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
+}

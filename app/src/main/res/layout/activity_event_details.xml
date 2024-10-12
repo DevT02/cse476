@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/eventImageDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/event_image_description"
+            android:maxHeight="300dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/baseline_location_city_24"
+            />
+
+        <TextView
+            android:id="@+id/eventTitleDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/event_title"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/eventDateDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/event_date_time"
+            android:textSize="18sp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/eventLocationDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/event_location"
+            android:textSize="18sp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/eventDescriptionDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/event_description"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</ScrollView>
