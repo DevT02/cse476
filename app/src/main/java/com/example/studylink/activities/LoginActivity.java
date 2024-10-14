@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,44 +15,56 @@ import com.example.studylink.R;
 
 public class LoginActivity extends AppCompatActivity {
 
-    // ui elements for email and password input
+    // UI elements for email and password input
     private EditText inputEmail, inputPassword;
     private Button btnLogin;
+    private TextView signupLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // initialize ui elements
-        inputEmail = findViewById(R.id.inputEmail);
-        inputPassword = findViewById(R.id.inputPassword);
-        btnLogin = findViewById(R.id.btnLogin);
+        // Initialize UI elements
+        inputEmail = findViewById(R.id.username);
+        inputPassword = findViewById(R.id.password);
+        btnLogin = findViewById(R.id.login_button);
+        signupLink = findViewById(R.id.signup_link); // The "Sign Up" link
 
-        // set up login button click listener
+        // Set up login button click listener
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // get email and password from input fields
+                // Get email and password from input fields
                 String email = inputEmail.getText().toString();
                 String password = inputPassword.getText().toString();
 
-                // check if the credentials are correct
+                // Check if the credentials are correct
                 if (email.equals("test@example.com") && password.equals("password")) {
-                    // save login state in shared preferences
+                    // Save login state in shared preferences
                     SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean("isLoggedIn", true);
                     editor.apply();
 
-                    // redirect to dashboard activity
+                    // Redirect to dashboard activity
                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                     startActivity(intent);
-                    finish(); // close login activity
+                    finish(); // Close login activity
                 } else {
-                    // show error message for invalid credentials
+                    // Show error message for invalid credentials
                     Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        // Set up signup link click listener
+        signupLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start the SignUpActivity when the user clicks the Sign Up link
+                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
+                startActivity(intent);
             }
         });
     }
