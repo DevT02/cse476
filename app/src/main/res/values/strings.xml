@@ -71,6 +71,7 @@
 
     <!-- Buttons -->
     <string name="upload_profile_picture">Upload Profile Picture</string>
+    <string name="take_picture">Take Picture</string>
     <string name="save_changes">Save Changes</string>
     <string name="log_out">Log Out</string>
 

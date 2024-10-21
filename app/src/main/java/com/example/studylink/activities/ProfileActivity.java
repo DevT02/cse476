@@ -35,12 +35,13 @@ import java.io.OutputStream;
 
 public class ProfileActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 100;
+    private static final int REQUEST_PERMISSION_CAMERA = 200;
 
     // ui elements
     private ImageView profilePicture;
     private EditText inputName, inputEmail, inputInterests, inputContactLink, inputClasses, inputBio;
     private SwitchMaterial switchGPA, switchAvailability, switchNotifications;
-    private Button btnUploadImage, btnSaveChanges, btnLogOut;
+    private Button btnUploadImage, btnSaveChanges, btnLogOut, btnTakePicture;
 
     private Uri profileImageUri;
     private static final String PROFILE_IMAGE_URI_KEY = "profile_image_uri";
@@ -52,11 +53,26 @@ public class ProfileActivity extends AppCompatActivity {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri selectedImageUri = result.getData().getData();
                     if (selectedImageUri != null) {
-                        copyImageToInternalStorage(selectedImageUri);
+                        profileImageUri = selectedImageUri;
+                        setImageUri(profileImageUri); // Temporarily set the image
                     }
                 }
             }
     );
+
+    // activity result launcher for capturing photos
+    private ActivityResultLauncher<Uri> takePictureLauncher = registerForActivityResult(
+            new ActivityResultContracts.TakePicture(),
+            result -> {
+                if (result && profileImageUri != null) {
+                    profilePicture.setImageURI(profileImageUri); // Temporarily set the image
+                    Log.d("ProfileActivity", "Image captured successfully.");
+                } else {
+                    Toast.makeText(ProfileActivity.this, "Failed to capture image", Toast.LENGTH_SHORT).show();
+                }
+            }
+    );
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +100,7 @@ public class ProfileActivity extends AppCompatActivity {
         switchNotifications = findViewById(R.id.switchNotifications);
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
         btnLogOut = findViewById(R.id.btnLogOut);
+        btnTakePicture = findViewById(R.id.btnTakePicture);
 
         // restore profile image uri if available
         if (savedInstanceState != null) {
@@ -97,6 +114,7 @@ public class ProfileActivity extends AppCompatActivity {
         loadUserData();
 
         // set click listeners
+        btnTakePicture.setOnClickListener(v -> requestCameraPermission());
         btnUploadImage.setOnClickListener(v -> requestStoragePermission());
         btnSaveChanges.setOnClickListener(v -> saveUserData()); // Update to navigate to HomeActivity
         btnLogOut.setOnClickListener(v -> {
@@ -147,10 +165,29 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    // request camera permissions
+    private void requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    REQUEST_PERMISSION_CAMERA);
+        } else {
+            openCamera();
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
+        if (requestCode == REQUEST_PERMISSION_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                Toast.makeText(this, "Permission denied to use camera", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // permission granted, proceed with image loading
                 openImagePicker();
@@ -176,6 +213,14 @@ public class ProfileActivity extends AppCompatActivity {
 
         pickImageLauncher.launch(intent);
     }
+
+    // open camera
+    private void openCamera() {
+        File destinationFile = new File(getFilesDir(), "profile_picture.jpg");
+        profileImageUri = Uri.fromFile(destinationFile);
+        takePictureLauncher.launch(profileImageUri);
+    }
+
 
     // set image uri to the imageview safely
     private void setImageUri(Uri uri) {
@@ -208,31 +253,16 @@ public class ProfileActivity extends AppCompatActivity {
     private void copyImageToInternalStorage(Uri sourceUri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(sourceUri);
-            File destinationFile = new File(getFilesDir(), "profile_picture.jpg");
-
-            if (destinationFile.exists()) {
-                destinationFile.delete();
-            }
-
-            OutputStream outputStream = new FileOutputStream(destinationFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-            outputStream.close();
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             inputStream.close();
-            profileImageUri = Uri.fromFile(destinationFile);
-            profilePicture.setImageURI(null);
-            profilePicture.setImageURI(profileImageUri);
-            saveProfileImageUri(profileImageUri);
-            Log.d("ProfileActivity", "Image copied successfully. URI: " + profileImageUri.toString());
-
+            profilePicture.setImageBitmap(bitmap);
+            profileImageUri = sourceUri; // Set URI but do not save yet
         } catch (Exception e) {
-            Log.e("ProfileActivity", "Error copying image: " + e.getMessage());
-            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+            Log.e("ProfileActivity", "Error setting image: " + e.getMessage());
+            Toast.makeText(this, "Failed to set image", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     // load user data
     private void loadUserData() {
@@ -277,7 +307,10 @@ public class ProfileActivity extends AppCompatActivity {
         editor.putBoolean("availability", switchAvailability.isChecked());
         editor.putBoolean("notifications_enabled", switchNotifications.isChecked());
 
+        // Save the profile image only if it is set
         if (profileImageUri != null) {
+            // Save the image to internal storage
+            saveImageToInternalStorage(profileImageUri);
             editor.putString(PROFILE_IMAGE_URI_KEY, profileImageUri.toString());
         }
 
@@ -288,5 +321,32 @@ public class ProfileActivity extends AppCompatActivity {
         Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void saveImageToInternalStorage(Uri sourceUri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(sourceUri);
+            File destinationFile = new File(getFilesDir(), "profile_picture.jpg");
+
+            if (destinationFile.exists()) {
+                destinationFile.delete();
+            }
+
+            OutputStream outputStream = new FileOutputStream(destinationFile);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            outputStream.close();
+            inputStream.close();
+            profileImageUri = Uri.fromFile(destinationFile); // Update with saved image URI
+
+            Log.d("ProfileActivity", "Image saved successfully. URI: " + profileImageUri.toString());
+
+        } catch (Exception e) {
+            Log.e("ProfileActivity", "Error saving image: " + e.getMessage());
+            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+        }
     }
 }
