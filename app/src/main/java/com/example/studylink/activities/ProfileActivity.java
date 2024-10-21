@@ -19,17 +19,21 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.example.studylink.HomeActivity;
 import com.example.studylink.R;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -65,9 +69,10 @@ public class ProfileActivity extends AppCompatActivity {
             new ActivityResultContracts.TakePicture(),
             result -> {
                 if (result && profileImageUri != null) {
-                    profilePicture.setImageURI(profileImageUri); // Temporarily set the image
-                    Log.d("ProfileActivity", "Image captured successfully.");
+                    Log.d("ProfileActivity", "Image captured successfully. URI: " + profileImageUri.toString());
+                    profilePicture.setImageURI(profileImageUri);
                 } else {
+                    Log.e("ProfileActivity", "Failed to capture image or profileImageUri is null.");
                     Toast.makeText(ProfileActivity.this, "Failed to capture image", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -167,16 +172,31 @@ public class ProfileActivity extends AppCompatActivity {
 
     // request camera permissions
     private void requestCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    REQUEST_PERMISSION_CAMERA);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                    // Show explanation before requesting permission
+                    new AlertDialog.Builder(this)
+                            .setTitle("Camera Permission Needed")
+                            .setMessage("This app requires access to your camera to take profile pictures.")
+                            .setPositiveButton("OK", (dialog, which) -> ActivityCompat.requestPermissions(this,
+                                    new String[]{Manifest.permission.CAMERA}, REQUEST_PERMISSION_CAMERA))
+                            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                            .create()
+                            .show();
+                } else {
+                    // Request permission directly
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_PERMISSION_CAMERA);
+                }
+            } else {
+                openCamera(); // Permission already granted, open the camera
+            }
         } else {
-            openCamera();
+            openCamera(); // Permission handling is not needed for Android versions below M
         }
     }
 
+    // request permissions and handle any errors as necessary
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -184,15 +204,48 @@ public class ProfileActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openCamera();
             } else {
-                Toast.makeText(this, "Permission denied to use camera", Toast.LENGTH_SHORT).show();
+                boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA);
+                if (!showRationale) {
+                    // User has permanently denied permission, navigate to settings
+                    new AlertDialog.Builder(this)
+                            .setTitle("Camera Permission Required")
+                            .setMessage("Camera permission is needed to take photos. Please enable it in the app settings.")
+                            .setPositiveButton("Settings", (dialog, which) -> {
+                                Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            })
+                            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                            .create()
+                            .show();
+                } else {
+                    Toast.makeText(this, "Permission denied to use camera", Toast.LENGTH_SHORT).show();
+                }
             }
-        }
-        else if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
+        } else if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // permission granted, proceed with image loading
+                // Permission granted, proceed with image loading
                 openImagePicker();
             } else {
-                Toast.makeText(this, "Permission denied to read external storage", Toast.LENGTH_SHORT).show();
+                boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+                if (!showRationale) {
+                    // User has permanently denied permission, navigate to settings
+                    new AlertDialog.Builder(this)
+                            .setTitle("Storage Permission Required")
+                            .setMessage("Storage permission is needed to access photos. Please enable it in the app settings.")
+                            .setPositiveButton("Settings", (dialog, which) -> {
+                                Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            })
+                            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                            .create()
+                            .show();
+                } else {
+                    Toast.makeText(this, "Permission denied to read external storage", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -216,8 +269,9 @@ public class ProfileActivity extends AppCompatActivity {
 
     // open camera
     private void openCamera() {
-        File destinationFile = new File(getFilesDir(), "profile_picture.jpg");
-        profileImageUri = Uri.fromFile(destinationFile);
+        File destinationFile = new File(getExternalFilesDir(null), "profile_picture.jpg");
+        // Use FileProvider to get a secure content URI
+        profileImageUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", destinationFile);
         takePictureLauncher.launch(profileImageUri);
     }
 
@@ -228,14 +282,23 @@ public class ProfileActivity extends AppCompatActivity {
             Log.d("ProfileActivity", "Attempting to load image Uri: " + uri.toString());
             ContentResolver contentResolver = getContentResolver();
             InputStream inputStream = contentResolver.openInputStream(uri);
+            if (inputStream == null) {
+                throw new Exception("Failed to open input stream");
+            }
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             inputStream.close();
             profilePicture.setImageBitmap(bitmap);
         } catch (SecurityException e) {
-            Log.e("ProfileActivity", "SecurityException when loading image Uri: " + uri.toString());
+            Log.e("ProfileActivity", "SecurityException when loading image Uri: " + uri.toString(), e);
             Toast.makeText(this, "Error loading image: Permission Denied", Toast.LENGTH_SHORT).show();
+        } catch (FileNotFoundException e) {
+            Log.e("ProfileActivity", "File not found when loading image Uri: " + uri.toString(), e);
+            Toast.makeText(this, "Error loading image: File not found", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Log.e("ProfileActivity", "IOException when loading image Uri: " + uri.toString(), e);
+            Toast.makeText(this, "Error loading image: Input/output issue", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Log.e("ProfileActivity", "General Exception when loading image Uri: " + uri.toString());
+            Log.e("ProfileActivity", "General Exception when loading image Uri: " + uri.toString(), e);
             Toast.makeText(this, "Error loading image", Toast.LENGTH_SHORT).show();
         }
     }
