@@ -2,7 +2,7 @@
     <!-- Base application -->
     <string name="app_name">StudyLink</string>
     <string name="logo_desc">Event Image</string>
-    <string name="welcome_message">Welcome to Study Group!</string>
+    <string name="welcome_message">Welcome to Study Link!</string>
     <string name="go_to_profile">Go to Profile</string>
     <string name="user_details">User: John Doe, Interests: Android Dev, AI</string>
 
@@ -33,6 +33,9 @@
     <string name="select_event_date">Select Event Time</string>
     <string name="pick_time">Pick Time</string>
     <string name="create_event_label">Create Event</string>
+    <string name="book_icon">Book icon</string>
+    <string name="new_user_message">New to Study Link?</string>
+    <string name="sign_up_here">SIGN UP HERE</string>
 
     <!-- Home Screen and Nav -->
     <string name="temp_main_fill">Latest App Updates:\n1. Group messaging added.\n2. Explore nearby events easily.\n3. Profile customization is now available. This page can also show the groups the user has joined, or made</string>
@@ -118,6 +121,10 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+
+    <string name="use_current_location">Use Current Location</string>
+    <string name="navigate_to_location">Navigate to Location</string>
+
 
 
 </resources>

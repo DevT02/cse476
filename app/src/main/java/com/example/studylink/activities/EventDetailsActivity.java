@@ -1,10 +1,13 @@
 package com.example.studylink.activities;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -22,7 +25,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         String eventTitle = getIntent().getStringExtra("event_title");
         String eventDescription = getIntent().getStringExtra("event_description");
         String eventDate = getIntent().getStringExtra("event_date");
-        String eventLocation = getIntent().getStringExtra("event_location");
+        String eventLocation = getIntent().getStringExtra("event_location");  // Ensure location is valid
         String eventImageUrl = getIntent().getStringExtra("event_image_url");
 
         // Initialize UI elements
@@ -31,6 +34,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         TextView eventDateTextView = findViewById(R.id.eventDateDetails);
         TextView eventLocationTextView = findViewById(R.id.eventLocationDetails);
         ImageView eventImageView = findViewById(R.id.eventImageDetails);
+        Button navigateButton = findViewById(R.id.btnNavigate);
 
         // Set event details to the UI elements
         eventTitleTextView.setText(eventTitle);
@@ -54,6 +58,30 @@ public class EventDetailsActivity extends AppCompatActivity {
         } else {
             // Set a default image if the URL is empty
             eventImageView.setImageResource(R.drawable.baseline_place_24);
+        }
+
+        // Handle navigation button click
+        navigateButton.setOnClickListener(v -> {
+            if (eventLocation != null && !eventLocation.isEmpty()) {
+                openLocationInMaps(eventLocation);
+            } else {
+                Toast.makeText(EventDetailsActivity.this, "Location not available", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Method to open the location in Google Maps and start navigation
+    private void openLocationInMaps(String location) {
+        // Create a URI for the navigation intent
+        Uri gmmIntentUri = Uri.parse("google.navigation:q=" + Uri.encode(location));
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+
+        // Verify that there is an app available to handle this intent
+        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapIntent);
+        } else {
+            Toast.makeText(this, "Google Maps not available", Toast.LENGTH_SHORT).show();
         }
     }
 }
