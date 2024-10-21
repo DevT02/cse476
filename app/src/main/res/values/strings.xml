@@ -122,5 +122,9 @@
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
 
+    <string name="use_current_location">Use Current Location</string>
+    <string name="navigate_to_location">Navigate to Location</string>
+
+
 
 </resources>

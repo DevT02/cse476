@@ -9,6 +9,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- Existing ImageView and TextViews for event details -->
+
         <ImageView
             android:id="@+id/eventImageDetails"
             android:layout_width="match_parent"
@@ -52,6 +54,15 @@
             android:text="@string/event_description"
             android:textSize="18sp"
             android:layout_marginTop="16dp" />
+
+        <!-- New Button for opening the location in Google Maps -->
+        <Button
+            android:id="@+id/btnNavigate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/navigate_to_location"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center" />
 
     </LinearLayout>
 </ScrollView>
