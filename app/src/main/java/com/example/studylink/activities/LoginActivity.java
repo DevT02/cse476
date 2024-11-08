@@ -41,6 +41,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize FirebaseAuth instance
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Initialize UI elements
         inputEmail = findViewById(R.id.username);
@@ -93,13 +94,17 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void saveUserDataToFirestore(String userId, String email, String hashedPassword) {
+        if (db == null) {
+            db = FirebaseFirestore.getInstance();
+        }
+
         Map<String, Object> user = new HashMap<>();
         user.put("email", email);
         user.put("passwordHash", hashedPassword);
 
         db.collection("users").document(userId)
                 .set(user, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> Toast.makeText(LoginActivity.this, "User data saved successfully.", Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(aVoid -> Toast.makeText(LoginActivity.this, "User registered successfully", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(LoginActivity.this, "Error saving user data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 

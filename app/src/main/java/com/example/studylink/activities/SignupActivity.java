@@ -121,18 +121,6 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
-    private void saveUserDataToFirestore(String userId, String email, String hashedPassword) {
-        Map<String, Object> user = new HashMap<>();
-        user.put("email", email);
-        user.put("passwordHash", hashedPassword);
-
-        db.collection("users").document(userId)
-                .set(user, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> Toast.makeText(SignupActivity.this, "User registered successfully", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(SignupActivity.this, "Error saving user data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-
-
     // Save the state when the activity is paused or the orientation changes
     @Override
     protected void onSaveInstanceState(Bundle outState) {
