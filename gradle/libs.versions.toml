@@ -12,6 +12,9 @@ playServicesMaps = "19.0.0"
 glide = "4.14.2"
 navigationFragment = "2.8.2"
 navigationUi = "2.8.2"
+googleGmsGoogleServices = "4.4.2"
+firebaseFirestore = "25.1.1"
+firebaseAuth = "23.1.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -26,7 +29,10 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 
