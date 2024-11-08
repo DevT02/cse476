@@ -59,11 +59,12 @@ public class SignupActivity extends AppCompatActivity {
             String email = emailField.getText().toString().trim();
             String password = passwordField.getText().toString().trim();
 
-            // Check if all fields are filled, if so register the user
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(SignupActivity.this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
             } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(SignupActivity.this, "Invalid email format", Toast.LENGTH_SHORT).show();
+            } else if (!isPasswordStrong(password)) {
+                Toast.makeText(SignupActivity.this, "Password must be at least 8 characters, include uppercase, lowercase, number, and special character.", Toast.LENGTH_LONG).show();
             } else {
                 registerUser(email, password);
             }
@@ -74,26 +75,44 @@ public class SignupActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
+                        mAuth.getCurrentUser().sendEmailVerification()
+                                .addOnCompleteListener(emailTask -> {
+                                    if (emailTask.isSuccessful()) {
+                                        Toast.makeText(SignupActivity.this, "Verification email sent. Please check your inbox.", Toast.LENGTH_LONG).show();
+                                        Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        Toast.makeText(SignupActivity.this, "Failed to send verification email.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
                         String userId = mAuth.getCurrentUser().getUid();
                         String hashedPassword = hashPassword(password);  // Hash the password
                         saveUserDataToFirestore(userId, email, hashedPassword);
 
-                        Intent intent = new Intent(SignupActivity.this, HomeActivity.class);
-                        startActivity(intent);
-                        finish();
                     } else {
-                        Exception e = task.getException();
-                        if (e instanceof FirebaseAuthUserCollisionException) {
-                            Toast.makeText(SignupActivity.this, "Account already exists", Toast.LENGTH_SHORT).show();
-                        } else if (e instanceof FirebaseAuthWeakPasswordException) {
-                            Toast.makeText(SignupActivity.this, "Password is too weak", Toast.LENGTH_SHORT).show();
-                        } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                            Toast.makeText(SignupActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(SignupActivity.this, "Signup failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+                        handleSignupError(task.getException());
                     }
                 });
+    }
+
+    private void handleSignupError(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
+            Toast.makeText(SignupActivity.this, "Account already exists", Toast.LENGTH_SHORT).show();
+        } else if (e instanceof FirebaseAuthWeakPasswordException) {
+            Toast.makeText(SignupActivity.this, "Password is too weak", Toast.LENGTH_SHORT).show();
+        } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
+            Toast.makeText(SignupActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(SignupActivity.this, "Signup failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isPasswordStrong(String password) {
+        // Define a regex for a strong password pattern
+        String passwordPattern = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+        return password.matches(passwordPattern);
     }
 
     private String hashPassword(String password) {
