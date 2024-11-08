@@ -3,6 +3,7 @@ package com.example.studylink.activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Base64;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -14,6 +15,14 @@ import com.example.studylink.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -22,6 +31,8 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private TextView signupLink;
     private FirebaseAuth mAuth; // Firebase Auth instance
+    private FirebaseFirestore db; // Firestore instance
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,26 +74,55 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Save login state in shared preferences
-                        SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putBoolean("isLoggedIn", true);
-                        editor.apply();
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null && user.isEmailVerified()) {
+                            String hashedPassword = hashPassword(password);
+                            saveUserDataToFirestore(user.getUid(), email, hashedPassword);
 
-                        // Redirect to HomeActivity
-                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                        startActivity(intent);
-                        finish(); // Close LoginActivity
-                    } else {
-                        Exception e = task.getException();
-                        if (e instanceof FirebaseAuthInvalidUserException) {
-                            Toast.makeText(LoginActivity.this, "No account found with this email", Toast.LENGTH_SHORT).show();
-                        } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                            Toast.makeText(LoginActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                            startActivity(intent);
+                            finish();
                         } else {
-                            Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Please verify your email first.", Toast.LENGTH_LONG).show();
+                            mAuth.signOut();
                         }
+                    } else {
+                        handleLoginError(task.getException());
                     }
                 });
     }
+
+    private void saveUserDataToFirestore(String userId, String email, String hashedPassword) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("email", email);
+        user.put("passwordHash", hashedPassword);
+
+        db.collection("users").document(userId)
+                .set(user, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> Toast.makeText(LoginActivity.this, "User data saved successfully.", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(LoginActivity.this, "Error saving user data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            return Base64.encodeToString(hash, Base64.NO_WRAP); // Works on all Android versions
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password", e);
+        }
+    }
+
+    private void handleLoginError(Exception e) {
+        if (e instanceof FirebaseAuthInvalidUserException) {
+            Toast.makeText(LoginActivity.this, "No account found with this email", Toast.LENGTH_SHORT).show();
+        } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
+            Toast.makeText(LoginActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
 }

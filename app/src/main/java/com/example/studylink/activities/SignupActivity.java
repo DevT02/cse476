@@ -86,16 +86,12 @@ public class SignupActivity extends AppCompatActivity {
                                         Toast.makeText(SignupActivity.this, "Failed to send verification email.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
-
-                        String userId = mAuth.getCurrentUser().getUid();
-                        String hashedPassword = hashPassword(password);  // Hash the password
-                        saveUserDataToFirestore(userId, email, hashedPassword);
-
                     } else {
                         handleSignupError(task.getException());
                     }
                 });
     }
+
 
     private void handleSignupError(Exception e) {
         if (e instanceof FirebaseAuthUserCollisionException) {
