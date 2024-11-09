@@ -36,6 +36,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseUser;
 
 public class ProfileActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 100;
@@ -49,6 +55,9 @@ public class ProfileActivity extends AppCompatActivity {
 
     private Uri profileImageUri;
     private static final String PROFILE_IMAGE_URI_KEY = "profile_image_uri";
+
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     // activity result launcher for image picking
     private ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
@@ -83,6 +92,10 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        // Initialize Firebase Firestore and Auth
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
         // Set up the toolbar with back button
         Toolbar toolbar = findViewById(R.id.toolbar_profile);
@@ -329,62 +342,87 @@ public class ProfileActivity extends AppCompatActivity {
 
     // load user data
     private void loadUserData() {
-        SharedPreferences preferences = getSharedPreferences("user_profile", MODE_PRIVATE);
-        inputName.setText(preferences.getString("user_name", ""));
-        inputEmail.setText(preferences.getString("user_email", ""));
-        inputInterests.setText(preferences.getString("user_interests", ""));
-        inputContactLink.setText(preferences.getString("user_contact_link", ""));
-        inputClasses.setText(preferences.getString("user_classes", ""));
-        inputBio.setText(preferences.getString("user_bio", ""));
-        switchGPA.setChecked(preferences.getBoolean("gpa_visible", false));
-        switchAvailability.setChecked(preferences.getBoolean("availability", true));
-        switchNotifications.setChecked(preferences.getBoolean("notifications_enabled", true));
-
-        String imageUriString = preferences.getString(PROFILE_IMAGE_URI_KEY, null);
-        if (imageUriString != null) {
-            File imageFile = new File(Uri.parse(imageUriString).getPath());
-            if (imageFile.exists()) {
-                profileImageUri = Uri.fromFile(imageFile);
-                profilePicture.setImageURI(profileImageUri);
-            } else {
-                // if file doesn't exist, reset to default
-                profilePicture.setImageResource(R.drawable.default_profile);
-                preferences.edit().remove(PROFILE_IMAGE_URI_KEY).apply();
+        // Get the currently logged-in user
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // Get the email from Firebase Auth and set it to the email input field if it's not null
+            String email = currentUser.getEmail();
+            if (email != null && inputEmail.getText().toString().isEmpty()) {
+                inputEmail.setText(email);
             }
-        } else {
-            profilePicture.setImageResource(R.drawable.default_profile);
         }
+
+        // Fetch profile data from Firestore
+        String userId = mAuth.getCurrentUser().getUid(); // Unique user ID
+
+        db.collection("profiles").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        Map<String, Object> profileData = task.getResult().getData();
+
+                        if (profileData != null) {
+                            inputName.setText((String) profileData.get("name"));
+                            // Only set the email from Firestore if it's empty (useful for cases where the Auth email is primary)
+                            if (inputEmail.getText().toString().isEmpty()) {
+                                inputEmail.setText((String) profileData.get("email"));
+                            }
+                            inputInterests.setText((String) profileData.get("interests"));
+                            inputContactLink.setText((String) profileData.get("contactLink"));
+                            inputClasses.setText((String) profileData.get("classes"));
+                            inputBio.setText((String) profileData.get("bio"));
+                            switchGPA.setChecked((Boolean) profileData.get("gpaVisible"));
+                            switchAvailability.setChecked((Boolean) profileData.get("availability"));
+                            switchNotifications.setChecked((Boolean) profileData.get("notificationsEnabled"));
+                        } else {
+                            Toast.makeText(ProfileActivity.this, "No profile data found", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(ProfileActivity.this, "Failed to load profile data", Toast.LENGTH_SHORT).show();
+                        Log.e("ProfileActivity", "Failed to load profile data", task.getException());
+                    }
+                });
     }
+
 
     // save user data and navigate to HomeActivity
     private void saveUserData() {
-        SharedPreferences preferences = getSharedPreferences("user_profile", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("user_name", inputName.getText().toString());
-        editor.putString("user_email", inputEmail.getText().toString());
-        editor.putString("user_interests", inputInterests.getText().toString());
-        editor.putString("user_contact_link", inputContactLink.getText().toString());
-        editor.putString("user_classes", inputClasses.getText().toString());
-        editor.putString("user_bio", inputBio.getText().toString());
-        editor.putBoolean("gpa_visible", switchGPA.isChecked());
-        editor.putBoolean("availability", switchAvailability.isChecked());
-        editor.putBoolean("notifications_enabled", switchNotifications.isChecked());
+        String userId = mAuth.getCurrentUser().getUid(); // Unique user ID
+        String name = inputName.getText().toString();
+        String email = inputEmail.getText().toString();
+        String interests = inputInterests.getText().toString();
+        String contactLink = inputContactLink.getText().toString();
+        String classes = inputClasses.getText().toString();
+        String bio = inputBio.getText().toString();
+        boolean gpaVisible = switchGPA.isChecked();
+        boolean availability = switchAvailability.isChecked();
+        boolean notificationsEnabled = switchNotifications.isChecked();
 
-        // Save the profile image only if it is set
-        if (profileImageUri != null) {
-            // Save the image to internal storage
-            saveImageToInternalStorage(profileImageUri);
-            editor.putString(PROFILE_IMAGE_URI_KEY, profileImageUri.toString());
-        }
+        // Create a profile data map
+        Map<String, Object> profileData = new HashMap<>();
+        profileData.put("name", name);
+        profileData.put("email", email);
+        profileData.put("interests", interests);
+        profileData.put("contactLink", contactLink);
+        profileData.put("classes", classes);
+        profileData.put("bio", bio);
+        profileData.put("gpaVisible", gpaVisible);
+        profileData.put("availability", availability);
+        profileData.put("notificationsEnabled", notificationsEnabled);
 
-        editor.apply();
-        Toast.makeText(ProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-
-        // Navigate to HomeActivity after saving
-        Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
-        startActivity(intent);
-        finish();
+        // Save data to Firestore under "profiles" collection with userId as the document ID
+        db.collection("profiles").document(userId).set(profileData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(ProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(ProfileActivity.this, "Failed to save profile", Toast.LENGTH_SHORT).show();
+                    Log.e("ProfileActivity", "Failed to save profile", e);
+                });
     }
+
 
     private void saveImageToInternalStorage(Uri sourceUri) {
         try {
