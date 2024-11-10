@@ -46,6 +46,7 @@
                 android:src="@drawable/ic_settings"
                 android:layout_marginStart="16dp"/>
 
+
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
@@ -68,13 +69,16 @@
             android:gravity="center"
             android:layout_marginBottom="16dp" />
 
-        <!-- App Updates or Relevant Information -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/temp_main_fill"
-            android:textSize="16sp"
-            android:gravity="center" />
+            android:text="Groups You've Joined:"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"/>
+
     </LinearLayout>
 
     <!-- Bottom Navigation Bar -->

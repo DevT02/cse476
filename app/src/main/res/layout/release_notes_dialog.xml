@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp"
+    android:gravity="center"
+    android:background="@drawable/dialog_background">
+
+    <!-- Title for the dialog -->
+    <TextView
+        android:id="@+id/release_notes_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Release Notes"
+        android:textSize="20sp"
+        android:textColor="@color/purple_500"
+        android:paddingBottom="10dp"
+        android:textStyle="bold"/>
+
+    <!-- New features section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Features"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:paddingBottom="4dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="• Group messaging added.\n• Explore nearby events easily.\n• Profile customization is now available."
+        android:textSize="14sp"
+        android:paddingBottom="8dp"/>
+
+    <!-- Close button -->
+    <Button
+        android:id="@+id/close_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="@android:color/white"
+        android:padding="8dp"
+        android:layout_gravity="center"/>
+</LinearLayout>

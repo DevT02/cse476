@@ -39,7 +39,7 @@
 
     <!-- Home Screen and Nav -->
     <string name="temp_main_fill">Latest App Updates:\n1. Group messaging added.\n2. Explore nearby events easily.\n3. Profile customization is now available. This page can also show the groups the user has joined, or made</string>
-    <string name="greetings_user">Greetings, John D.</string>
+    <string name="greetings_user">GREETINGS, JOHN D.</string>
     <string name="settings_desc">Settings</string>
     <string name="nav_explore">Explore Groups</string>
 

@@ -240,6 +240,8 @@ public class EventActivity extends AppCompatActivity {
     // Handle location permissions result
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults); // Call the superclass implementation first
+
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, proceed to get location
@@ -247,10 +249,10 @@ public class EventActivity extends AppCompatActivity {
             } else {
                 // Permission denied, show an alert dialog
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    // If the user denied but didn't check "Don't ask again", explain the importance of the permission
+                    // Explain the importance of the permission
                     showPermissionRationaleDialog();
                 } else {
-                    // User denied the permission and checked "Don't ask again", direct them to settings
+                    // User checked "Don't ask again", direct them to settings
                     showGoToSettingsDialog();
                 }
             }
@@ -285,8 +287,6 @@ public class EventActivity extends AppCompatActivity {
                 .create()
                 .show();
     }
-
-
 
 
     // Get current location

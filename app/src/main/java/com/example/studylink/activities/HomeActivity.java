@@ -1,12 +1,13 @@
-
 package com.example.studylink;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.view.Menu;
-
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -31,46 +32,59 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-
-        // Toolbar buttons
+        // Initialize UI elements
         btnLogout = findViewById(R.id.btn_logout);
         btnSettings = findViewById(R.id.btn_settings);
-
-        // Bottom Navigation
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.getMenu().setGroupCheckable(0, false, false);
 
+        // Call the method to show release notes if it's the user's first login
+        showReleaseNotesIfFirstLogin();
 
         // Handle Logout button click
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logout();
-            }
-        });
+        btnLogout.setOnClickListener(v -> logout());
 
-        btnSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openSettings();
-            }
-        });
+        btnSettings.setOnClickListener(v -> openSettings());
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.nav_create_event) {
-                    openCreateEvent();
-                    return true;
-                } else if (id == R.id.nav_find_groups) {
-                    openFindGroups();
-                    return true;
-                } else {
-                    return false;
-                }
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_create_event) {
+                openCreateEvent();
+                return true;
+            } else if (id == R.id.nav_find_groups) {
+                openFindGroups();
+                return true;
+            } else {
+                return false;
             }
         });
+    }
+
+    private void showReleaseNotesIfFirstLogin() {
+        // Check if it's the user's first login by using SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        boolean isFirstLogin = preferences.getBoolean("isFirstLogin", true);
+
+        if (isFirstLogin) {
+            // Inflate the custom layout for the release notes dialog
+            View dialogView = getLayoutInflater().inflate(R.layout.release_notes_dialog, null);
+
+            // Create the dialog and set the custom view
+            AlertDialog releaseNotesDialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            // Set up the close button inside the dialog
+            Button closeButton = dialogView.findViewById(R.id.close_button);
+            closeButton.setOnClickListener(v -> releaseNotesDialog.dismiss());
+
+            // Show the dialog
+            releaseNotesDialog.show();
+
+            // Update SharedPreferences to indicate that the release notes have been shown
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("isFirstLogin", false);
+            editor.apply();
+        }
     }
 
     private void logout() {
@@ -92,19 +106,16 @@ public class HomeActivity extends AppCompatActivity {
         finish(); // Close the current activity
     }
 
-    // Function to open settings
     private void openSettings() {
         Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
         startActivity(intent);
     }
 
-    // Navigate to Create Event screen
     private void openCreateEvent() {
         Intent intent = new Intent(HomeActivity.this, EventActivity.class);
         startActivity(intent);
     }
 
-    //  Navigate to Find Public Groups screen
     private void openFindGroups() {
         Intent intent = new Intent(HomeActivity.this, DashboardActivity.class);
         startActivity(intent);
@@ -119,8 +130,4 @@ public class HomeActivity extends AppCompatActivity {
             menu.getItem(i).setChecked(false);
         }
     }
-
-
-
-
 }
