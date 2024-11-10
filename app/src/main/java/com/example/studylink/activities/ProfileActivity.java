@@ -409,6 +409,11 @@ public class ProfileActivity extends AppCompatActivity {
         profileData.put("availability", availability);
         profileData.put("notificationsEnabled", notificationsEnabled);
 
+        // Check if profile image URI is set, and only add it if it's not null
+        if (profileImageUri != null) {
+            profileData.put("profileImageUri", profileImageUri.toString());
+        }
+
         // Save data to Firestore under "profiles" collection with userId as the document ID
         db.collection("profiles").document(userId).set(profileData)
                 .addOnSuccessListener(aVoid -> {

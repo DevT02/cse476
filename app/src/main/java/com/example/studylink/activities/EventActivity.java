@@ -165,23 +165,29 @@ public class EventActivity extends AppCompatActivity {
         String eventTime = inputEventTime.getText().toString();
         String eventLocation = inputEventLocation.getText().toString();
 
-        // Check if all fields are filled and image is uploaded
+        // Check if all required fields are filled
         if (!eventTitle.isEmpty() && !eventDescription.isEmpty() && !eventDate.isEmpty() &&
-                !eventTime.isEmpty() && !eventLocation.isEmpty() && eventImageUri != null) {
+                !eventTime.isEmpty() && !eventLocation.isEmpty()) {
 
-            // Save image to internal storage
-            String savedImagePath = saveImageToInternalStorage(eventImageUri);
-            if (savedImagePath != null) {
-                // Save event details to SharedPreferences
-                saveEventToSharedPreferences(eventTitle, eventDescription, eventDate, eventTime, eventLocation, savedImagePath);
-                Toast.makeText(EventActivity.this, "Event Created Successfully!", Toast.LENGTH_SHORT).show();
-                // Navigate to Dashboard
-                navigateToDashboard();
-            } else {
-                Toast.makeText(EventActivity.this, "Failed to save image", Toast.LENGTH_SHORT).show();
+            // If an image is selected, save it to internal storage
+            String savedImagePath = null;
+            if (eventImageUri != null) {
+                savedImagePath = saveImageToInternalStorage(eventImageUri);
+                if (savedImagePath == null) {
+                    Toast.makeText(EventActivity.this, "Failed to save image", Toast.LENGTH_SHORT).show();
+                    return; // Exit if image saving fails
+                }
             }
+
+            // Save event details to SharedPreferences or database with the image path if available
+            saveEventToSharedPreferences(eventTitle, eventDescription, eventDate, eventTime, eventLocation, savedImagePath);
+            Toast.makeText(EventActivity.this, "Event Created Successfully!", Toast.LENGTH_SHORT).show();
+
+            // Navigate to Dashboard or HomeActivity
+            navigateToDashboard();
+
         } else {
-            Toast.makeText(EventActivity.this, "Please fill in all fields and upload an image", Toast.LENGTH_SHORT).show();
+            Toast.makeText(EventActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
         }
     }
 
