@@ -32,14 +32,23 @@ import com.example.studylink.HomeActivity;
 import com.example.studylink.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class EventActivity extends AppCompatActivity {
 
@@ -47,6 +56,10 @@ public class EventActivity extends AppCompatActivity {
     private EditText inputEventTitle, inputEventDescription, inputEventDate, inputEventTime, inputEventLocation;
     private Button btnSubmitEvent, btnPickDate, btnPickTime, btnUploadImage, btnUseCurrentLocation;
     private ImageView eventImageView;
+    private Timestamp eventTimestamp;
+
+    private FirebaseAuth mAuth; // Firebase Auth instance
+    private FirebaseFirestore db; // Firestore instance
 
     // URI for the event image
     private Uri eventImageUri;
@@ -71,6 +84,10 @@ public class EventActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event);
 
+        // Initialize FirebaseAuth instance
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
         // Set up the toolbar and enable the back button
         Toolbar toolbar = findViewById(R.id.toolbar_create_event);
         setSupportActionBar(toolbar);
@@ -86,6 +103,31 @@ public class EventActivity extends AppCompatActivity {
 
         // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+    }
+
+    private void saveEventDataToFirestore(String title, String desc, String image, String location, Timestamp timestamp) {
+        if (db == null) {
+            db = FirebaseFirestore.getInstance();
+        }
+
+        // Create an profile data map
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put("date", timestamp);
+        eventData.put("description", desc);
+        eventData.put("location", location);
+        eventData.put("title", title);
+
+        if (image != null) {
+            eventData.put("image", image);
+        }
+
+        // Create a new document with auto-generated ID in the "events" collection
+        db.collection("events")
+                .add(eventData)
+                .addOnSuccessListener(documentReference ->
+                        Toast.makeText(EventActivity.this, "Event saved successfully", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(EventActivity.this, "Error saving event data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     // Handle the back button click in the toolbar
@@ -150,6 +192,45 @@ public class EventActivity extends AppCompatActivity {
         timePickerDialog.show();
     }
 
+    private void combineDateAndTime(String eventDate, String eventTime) {
+        // Define the date and time format
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+        try {
+            // Parse the date and time strings into Date objects
+            Date date = dateFormat.parse(eventDate);
+            Date time = timeFormat.parse(eventTime);
+
+            // Create a Calendar object and set the year, month, and day from the parsed date
+            Calendar calendar = Calendar.getInstance();
+            if (date != null) {
+                calendar.setTime(date);  // Set the full date (year, month, day)
+            }
+
+            // Extract the hour and minute from the time string and set them in the calendar
+            if (time != null) {
+                Calendar timeCalendar = Calendar.getInstance();
+                timeCalendar.setTime(time);
+                calendar.set(Calendar.HOUR_OF_DAY, timeCalendar.get(Calendar.HOUR_OF_DAY));
+                calendar.set(Calendar.MINUTE, timeCalendar.get(Calendar.MINUTE));
+            }
+
+            // Convert the Calendar object to a Date object
+            Date combinedDate = calendar.getTime();
+
+            // Convert the Date object to Firebase Timestamp
+            Timestamp timestamp = new Timestamp(combinedDate);
+
+            // Set the event timestamp (or use it as needed)
+            eventTimestamp = timestamp;
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Invalid date or time format", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     // Open image picker
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
@@ -164,6 +245,7 @@ public class EventActivity extends AppCompatActivity {
         String eventDate = inputEventDate.getText().toString();
         String eventTime = inputEventTime.getText().toString();
         String eventLocation = inputEventLocation.getText().toString();
+        combineDateAndTime(eventDate, eventTime);
 
         // Check if all required fields are filled
         if (!eventTitle.isEmpty() && !eventDescription.isEmpty() && !eventDate.isEmpty() &&
@@ -183,6 +265,7 @@ public class EventActivity extends AppCompatActivity {
             saveEventToSharedPreferences(eventTitle, eventDescription, eventDate, eventTime, eventLocation, savedImagePath);
             Toast.makeText(EventActivity.this, "Event Created Successfully!", Toast.LENGTH_SHORT).show();
 
+            saveEventDataToFirestore(eventTitle, eventDescription, savedImagePath, eventLocation, eventTimestamp);
             // Navigate to Dashboard or HomeActivity
             navigateToDashboard();
 
