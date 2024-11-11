@@ -81,7 +81,7 @@ public class SignupActivity extends AppCompatActivity {
             } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Snackbar.make(view, "Invalid email format", Snackbar.LENGTH_SHORT).show();
             } else if (!isPasswordStrong(password)) {
-                Snackbar.make(view, "Password must be at least 8 characters, have uppercase, lowercase, number, special character.", Snackbar.LENGTH_INDEFINITE)
+                Snackbar.make(view, "Password must be at least 8 characters, have uppercase, lowercase, number, special character", Snackbar.LENGTH_INDEFINITE)
                         .setAction("OK", v -> {}).show();
             } else {
                 registerUser(email, password);
