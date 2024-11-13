@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,22 +21,33 @@ import com.example.studylink.activities.LoginActivity;
 import com.example.studylink.activities.ProfileActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomeActivity extends AppCompatActivity {
 
     private ImageButton btnLogout;
     private ImageButton btnSettings;
     private BottomNavigationView bottomNavigationView;
+    private TextView greetingTextView;
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
         // Initialize UI elements
         btnLogout = findViewById(R.id.btn_logout);
         btnSettings = findViewById(R.id.btn_settings);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
+        greetingTextView = findViewById(R.id.greetingTextView);
+
+        loadUserName();
 
         // Call the method to show release notes if it's the user's first login
         showReleaseNotesIfFirstLogin();
@@ -57,6 +69,26 @@ public class HomeActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    private void loadUserName() {
+        String userId = mAuth.getCurrentUser().getUid();
+
+        db.collection("profiles").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        DocumentSnapshot document = task.getResult();
+                        String name = document.getString("name");
+                        if (name != null && !name.isEmpty()) {
+                            greetingTextView.setText("Greetings, " + name + ".");
+                        } else {
+                            greetingTextView.setText("Greetings.");
+                        }
+                    } else {
+                        greetingTextView.setText("Greetings.");
+                        Toast.makeText(HomeActivity.this, "Failed to load name.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void showReleaseNotesIfFirstLogin() {

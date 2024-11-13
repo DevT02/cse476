@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.studylink.R;
 
+import java.io.File;
+
 public class EventDetailsActivity extends AppCompatActivity {
 
     @Override
@@ -25,7 +27,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         String eventTitle = getIntent().getStringExtra("event_title");
         String eventDescription = getIntent().getStringExtra("event_description");
         String eventDate = getIntent().getStringExtra("event_date");
-        String eventLocation = getIntent().getStringExtra("event_location");  // Ensure location is valid
+        String eventLocation = getIntent().getStringExtra("event_location");
         String eventImageUrl = getIntent().getStringExtra("event_image_url");
 
         // Initialize UI elements
@@ -42,19 +44,25 @@ public class EventDetailsActivity extends AppCompatActivity {
         eventDateTextView.setText(eventDate);
         eventLocationTextView.setText(eventLocation);
 
-        // Log the received image URL for debugging purposes
-        Log.d("EventDetailsActivity", "Received Image URL: " + eventImageUrl);
-
-        // Clear any existing image drawable
-        eventImageView.setImageDrawable(null);
-
         // Load the event image using Glide if the URL is not empty
         if (eventImageUrl != null && !eventImageUrl.isEmpty()) {
-            Glide.with(this)
-                    .load(Uri.parse(eventImageUrl))
-                    .placeholder(R.drawable.baseline_place_24) // Placeholder image
-                    .error(R.drawable.baseline_place_24) // Error image
-                    .into(eventImageView);
+            // Check if the URL is a network URL or a local file path
+            if (eventImageUrl.startsWith("http")) {
+                // It's a network URL
+                Glide.with(this)
+                        .load(eventImageUrl) // Load network URL directly
+                        .placeholder(R.drawable.baseline_place_24) // Placeholder image
+                        .error(R.drawable.baseline_place_24) // Error image
+                        .into(eventImageView);
+            } else {
+                // It's a local file path
+                File imageFile = new File(eventImageUrl); // Convert to File object for local path
+                Glide.with(this)
+                        .load(imageFile) // Load the image from the File object
+                        .placeholder(R.drawable.baseline_place_24) // Placeholder image
+                        .error(R.drawable.baseline_place_24) // Error image
+                        .into(eventImageView);
+            }
         } else {
             // Set a default image if the URL is empty
             eventImageView.setImageResource(R.drawable.baseline_place_24);

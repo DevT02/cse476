@@ -1,37 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:background="?android:attr/selectableItemBackground">
-
-    <ImageView
-        android:id="@+id/eventImage"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_alignParentStart="true"
-        android:scaleType="centerCrop"
-        android:layout_marginEnd="8dp"
-        android:src="@drawable/baseline_place_24"/>
-
+    android:padding="16dp">
 
     <TextView
-        android:id="@+id/eventTitle"
+        android:id="@+id/group_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/eventImage"
-        android:text="@string/event_title"
+        android:text="@string/group_title"
         android:textSize="18sp"
-        android:layout_marginStart="8dp" />
+        android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/eventDescription"
+        android:id="@+id/group_description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/eventImage"
-        android:layout_below="@id/eventTitle"
-        android:text="@string/event_description"
-        android:textSize="14sp"
-        android:layout_marginStart="8dp" />
+        android:text="@string/group_description"
+        android:textSize="14sp" />
 
-</RelativeLayout>
+    <TextView
+        android:id="@+id/group_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/group_date_and_time"
+        android:textSize="12sp"
+        android:textColor="#808080" />
+
+<!--    <TextView-->
+<!--        android:id="@+id/group_distance"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="@string/group_distance"-->
+<!--        android:textSize="12sp"-->
+<!--        android:textColor="#808080" />-->
+
+    <TextView
+        android:id="@+id/group_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/group_location"
+        android:textSize="12sp"
+        android:textColor="#808080" />
+
+</LinearLayout>

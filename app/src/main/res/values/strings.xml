@@ -46,6 +46,12 @@
     <string name="find_groups_label">Find Groups</string>
     <string name="find_groups_icon_desc">Find Groups Icon</string>
     <string name="search_groups_hint">Search Groups</string>
+    <string name="group_title">Group Title</string>
+    <string name="group_description">Group Description</string>
+    <string name="group_location">Group Location</string>
+    <string name="group_date_and_time">Group Date And Time</string>
+    <string name="group_distance">Group Distance</string>
+    <string name="groups_found">Found Groups Near You</string>
 
     <string name="edit_profile_label">Edit Profile</string>
 

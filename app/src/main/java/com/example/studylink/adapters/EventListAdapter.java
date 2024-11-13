@@ -3,7 +3,6 @@ package com.example.studylink.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +12,16 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.studylink.R;
-import com.example.studylink.activities.EventDetailsActivity;
 import com.example.studylink.models.Event;
 
-import java.io.File;
 import java.util.List;
+import com.example.studylink.activities.EventDetailsActivity;
+
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private List<Event> events;
     private Context context;
+    private List<Event> events;
 
     public EventListAdapter(Context context, List<Event> events) {
         super(context, 0, events);
@@ -36,32 +35,20 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_event, parent, false);
         }
 
-        TextView eventTitleTextView = convertView.findViewById(R.id.eventTitle);
-        ImageView eventImageView = convertView.findViewById(R.id.eventImage);
-        TextView eventDescription = convertView.findViewById(R.id.eventDescription);
+        // Get references to the views
+        TextView groupTitle = convertView.findViewById(R.id.group_title);
+        TextView groupDescription = convertView.findViewById(R.id.group_description);
+        TextView groupTime = convertView.findViewById(R.id.group_time);
+        TextView groupLocation = convertView.findViewById(R.id.group_location);ImageView groupImageUrl = convertView.findViewById(R.id.eventImageDetails);
 
+        // Get the event at the current position
         Event event = events.get(position);
-        eventTitleTextView.setText(event.getTitle());
-        eventDescription.setText(event.getDescription());
 
-        if (!event.getImageUrl().isEmpty()) {
-            Uri imageUri;
-            if (event.getImageUrl().startsWith("content://")) {
-                imageUri = Uri.parse(event.getImageUrl());
-            } else {
-                // Assume it's a file path in internal storage
-                File imageFile = new File(context.getFilesDir(), event.getImageUrl());
-                imageUri = Uri.fromFile(imageFile);
-            }
-
-            Glide.with(context)
-                    .load(imageUri)
-                    .placeholder(R.drawable.baseline_place_24)
-                    .error(R.drawable.baseline_place_24)
-                    .into(eventImageView);
-        } else {
-            eventImageView.setImageResource(R.drawable.baseline_place_24);
-        }        Log.d("EventListAdapter", "Image URI: " + event.getImageUrl());
+        // Set the event details in the views
+        groupTitle.setText(event.getTitle());
+        groupDescription.setText(event.getDescription());
+        groupTime.setText(event.getDate());
+        groupLocation.setText(event.getLocation());
 
         convertView.setOnClickListener(v -> {
             Intent intent = new Intent(context, EventDetailsActivity.class);
@@ -70,10 +57,10 @@ public class EventListAdapter extends ArrayAdapter<Event> {
             intent.putExtra("event_date", event.getDate());
             intent.putExtra("event_location", event.getLocation());
             intent.putExtra("event_image_url", event.getImageUrl());
+
             context.startActivity(intent);
         });
 
         return convertView;
     }
-
 }
