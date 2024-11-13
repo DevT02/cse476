@@ -3,8 +3,6 @@
     <string name="app_name">StudyLink</string>
     <string name="logo_desc">Event Image</string>
     <string name="welcome_message">Welcome to Study Link!</string>
-    <string name="go_to_profile">Go to Profile</string>
-    <string name="user_details">User: John Doe, Interests: Android Dev, AI</string>
 
     <!-- Event Strings -->
     <string name="create_event">Create Event</string>
@@ -18,13 +16,7 @@
     <string name="event_location">Event Location:</string>
 
     <!-- Login Strings -->
-    <string name="go_back">Go Back</string>
     <string name="signup_label">Sign Up</string>
-    <string name="password_hint">Enter your password</string>
-    <string name="signup_button">Create Account</string>
-    <string name="send_button">Send</string>
-    <string name="join_event">Join Event</string>
-    <string name="location_header">Find Event Location</string>
     <string name="login">Login</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
@@ -38,7 +30,6 @@
     <string name="sign_up_here">SIGN UP HERE</string>
 
     <!-- Home Screen and Nav -->
-    <string name="temp_main_fill">Latest App Updates:\n1. Group messaging added.\n2. Explore nearby events easily.\n3. Profile customization is now available. This page can also show the groups the user has joined, or made</string>
     <string name="greetings_user">GREETINGS, JOHN D.</string>
     <string name="settings_desc">Settings</string>
     <string name="nav_explore">Explore Groups</string>
@@ -50,8 +41,6 @@
     <string name="group_description">Group Description</string>
     <string name="group_location">Group Location</string>
     <string name="group_date_and_time">Group Date And Time</string>
-    <string name="group_distance">Group Distance</string>
-    <string name="groups_found">Found Groups Near You</string>
 
     <string name="edit_profile_label">Edit Profile</string>
 
@@ -69,8 +58,6 @@
     <string name="bio_hint">Bio</string>
 
     <!-- Placeholder for formatted -->
-    <string name="formatted_date">%1$s/%2$s/%3$s</string>
-    <string name="formatted_time">%1$s:%2$s</string>
 
     <!-- Descriptions -->
     <string name="profile_picture_desc">Profile Picture</string>
@@ -87,8 +74,6 @@
     <string name="availability_status">Availability Status</string>
     <string name="enable_notifications">Enable Notifications</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
@@ -131,7 +116,14 @@
 
     <string name="use_current_location">Use Current Location</string>
     <string name="navigate_to_location">Navigate to Location</string>
-
+    <string name="groups_you_ve_joined">Groups You\'ve Joined:</string>
+    <string name="release_notes">Release Notes</string>
+    <string name="new_features">New Features</string>
+    <string name="updates">• Group messaging added.\n• Explore nearby events easily.\n• Profile customization is now available.</string>
+    <string name="close">Close</string>
+    <string name="greetings">Greetings.</string>
+    <string name="greetingss">Greetings.</string>
+    <string name="greetingsss">"Greetings, "</string>
 
 
 </resources>

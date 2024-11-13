@@ -1,18 +1,15 @@
 package com.example.studylink;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.view.Menu;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.studylink.activities.DashboardActivity;
@@ -80,12 +77,12 @@ public class HomeActivity extends AppCompatActivity {
                         DocumentSnapshot document = task.getResult();
                         String name = document.getString("name");
                         if (name != null && !name.isEmpty()) {
-                            greetingTextView.setText("Greetings, " + name + ".");
+                            greetingTextView.setText(getString(R.string.greetingsss) + name + ".");
                         } else {
-                            greetingTextView.setText("Greetings.");
+                            greetingTextView.setText(R.string.greetingss);
                         }
                     } else {
-                        greetingTextView.setText("Greetings.");
+                        greetingTextView.setText(R.string.greetings);
                         Toast.makeText(HomeActivity.this, "Failed to load name.", Toast.LENGTH_SHORT).show();
                     }
                 });

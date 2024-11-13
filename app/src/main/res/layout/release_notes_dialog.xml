@@ -9,10 +9,9 @@
 
     <!-- Title for the dialog -->
     <TextView
-        android:id="@+id/release_notes_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Release Notes"
+        android:text="@string/release_notes"
         android:textSize="20sp"
         android:textColor="@color/purple_500"
         android:paddingBottom="10dp"
@@ -22,7 +21,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Features"
+        android:text="@string/new_features"
         android:textStyle="bold"
         android:textSize="16sp"
         android:paddingBottom="4dp"/>
@@ -30,7 +29,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="• Group messaging added.\n• Explore nearby events easily.\n• Profile customization is now available."
+        android:text="@string/updates"
         android:textSize="14sp"
         android:paddingBottom="8dp"/>
 
@@ -39,7 +38,7 @@
         android:id="@+id/close_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Close"
+        android:text="@string/close"
         android:backgroundTint="@color/purple_500"
         android:textColor="@android:color/white"
         android:padding="8dp"

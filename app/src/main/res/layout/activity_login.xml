@@ -18,7 +18,6 @@
 
         <!-- Book Icon -->
         <ImageView
-            android:id="@+id/book_icon"
             android:layout_width="90dp"
             android:layout_height="75dp"
             android:layout_marginBottom="16dp"
@@ -27,7 +26,6 @@
 
         <!-- App Display Name -->
         <TextView
-            android:id="@+id/app_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
@@ -38,7 +36,6 @@
 
         <!-- Welcome Text -->
         <TextView
-            android:id="@+id/welcome_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/welcome_message"
@@ -48,7 +45,6 @@
 
         <!-- Username Field -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/usernameInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
@@ -66,7 +62,6 @@
 
         <!-- Password Field -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/passwordInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
@@ -95,7 +90,6 @@
 
         <!-- New User Text -->
         <TextView
-            android:id="@+id/newuser_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/new_user_message"

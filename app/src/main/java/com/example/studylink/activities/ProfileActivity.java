@@ -60,7 +60,7 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     // activity result launcher for image picking
-    private ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -74,11 +74,11 @@ public class ProfileActivity extends AppCompatActivity {
     );
 
     // activity result launcher for capturing photos
-    private ActivityResultLauncher<Uri> takePictureLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<Uri> takePictureLauncher = registerForActivityResult(
             new ActivityResultContracts.TakePicture(),
             result -> {
                 if (result && profileImageUri != null) {
-                    Log.d("ProfileActivity", "Image captured successfully. URI: " + profileImageUri.toString());
+                    Log.d("ProfileActivity", "Image captured successfully. URI: " + profileImageUri);
                     profilePicture.setImageURI(profileImageUri);
                 } else {
                     Log.e("ProfileActivity", "Failed to capture image or profileImageUri is null.");
@@ -304,13 +304,13 @@ public class ProfileActivity extends AppCompatActivity {
             inputStream.close();
             profilePicture.setImageBitmap(bitmap);
         } catch (SecurityException e) {
-            Log.e("ProfileActivity", "SecurityException when loading image Uri: " + uri.toString(), e);
+            Log.e("ProfileActivity", "SecurityException when loading image Uri: " + uri, e);
             Toast.makeText(this, "Error loading image: Permission Denied", Toast.LENGTH_SHORT).show();
         } catch (FileNotFoundException e) {
-            Log.e("ProfileActivity", "File not found when loading image Uri: " + uri.toString(), e);
+            Log.e("ProfileActivity", "File not found when loading image Uri: " + uri, e);
             Toast.makeText(this, "Error loading image: File not found", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
-            Log.e("ProfileActivity", "IOException when loading image Uri: " + uri.toString(), e);
+            Log.e("ProfileActivity", "IOException when loading image Uri: " + uri, e);
             Toast.makeText(this, "Error loading image: Input/output issue", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e("ProfileActivity", "General Exception when loading image Uri: " + uri.toString(), e);
@@ -324,7 +324,7 @@ public class ProfileActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(PROFILE_IMAGE_URI_KEY, uri.toString());
         editor.apply();
-        Log.d("ProfileActivity", "Saved profile image URI: " + uri.toString());
+        Log.d("ProfileActivity", "Saved profile image URI: " + uri);
     }
 
     // copy image to internal storage

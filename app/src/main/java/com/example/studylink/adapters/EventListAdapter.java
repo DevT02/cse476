@@ -20,8 +20,8 @@ import com.example.studylink.activities.EventDetailsActivity;
 
 public class EventListAdapter extends ArrayAdapter<Event> {
 
-    private Context context;
-    private List<Event> events;
+    private final Context context;
+    private final List<Event> events;
 
     public EventListAdapter(Context context, List<Event> events) {
         super(context, 0, events);

@@ -33,12 +33,12 @@ public class DashboardActivity extends AppCompatActivity {
     private ListView eventsListView;
 
     // hold events and filtered events
-    private List<Event> events = new ArrayList<>();
-    private List<Event> filteredEvents = new ArrayList<>();
+    private final List<Event> events = new ArrayList<>();
+    private final List<Event> filteredEvents = new ArrayList<>();
     private EventListAdapter eventListAdapter;
 
     // Firebase Firestore instance
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

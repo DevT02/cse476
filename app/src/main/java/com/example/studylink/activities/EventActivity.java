@@ -70,7 +70,7 @@ public class EventActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1000;
 
     // For picking an image from the gallery
-    private ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -256,7 +256,7 @@ public class EventActivity extends AppCompatActivity {
             // If an image is selected, save it to internal storage
             String savedImagePath = null;
             if (eventImageUri != null) {
-                Log.d("EventActivity", "Attempting to save image with URI: " + eventImageUri.toString()); // Log the URI
+                Log.d("EventActivity", "Attempting to save image with URI: " + eventImageUri); // Log the URI
                 savedImagePath = saveImageToInternalStorage(eventImageUri);
                 if (savedImagePath == null) {
                     Log.e("EventActivity", "Failed to save image to internal storage."); // Log the failure
