@@ -16,6 +16,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -74,6 +75,7 @@ public class EventActivity extends AppCompatActivity {
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     eventImageUri = result.getData().getData();
+                    Log.d("EventActivity", "Selected Image URI: " + eventImageUri);
                     eventImageView.setImageURI(eventImageUri);
                 }
             }
@@ -117,7 +119,7 @@ public class EventActivity extends AppCompatActivity {
         eventData.put("location", location);
         eventData.put("title", title);
 
-        if (image != null) {
+        if (image != null && !image.isEmpty()) {
             eventData.put("image", image);
         }
 
@@ -254,8 +256,10 @@ public class EventActivity extends AppCompatActivity {
             // If an image is selected, save it to internal storage
             String savedImagePath = null;
             if (eventImageUri != null) {
+                Log.d("EventActivity", "Attempting to save image with URI: " + eventImageUri.toString()); // Log the URI
                 savedImagePath = saveImageToInternalStorage(eventImageUri);
                 if (savedImagePath == null) {
+                    Log.e("EventActivity", "Failed to save image to internal storage."); // Log the failure
                     Toast.makeText(EventActivity.this, "Failed to save image", Toast.LENGTH_SHORT).show();
                     return; // Exit if image saving fails
                 }
@@ -266,6 +270,7 @@ public class EventActivity extends AppCompatActivity {
             Toast.makeText(EventActivity.this, "Event Created Successfully!", Toast.LENGTH_SHORT).show();
 
             saveEventDataToFirestore(eventTitle, eventDescription, savedImagePath, eventLocation, eventTimestamp);
+            Log.d("EventActivity", "Passing image path to EventDetailsActivity: " + savedImagePath);
             // Navigate to Dashboard or HomeActivity
             navigateToDashboard();
 
@@ -273,6 +278,7 @@ public class EventActivity extends AppCompatActivity {
             Toast.makeText(EventActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     // Save image to internal storage
     private String saveImageToInternalStorage(Uri imageUri) {
@@ -289,9 +295,16 @@ public class EventActivity extends AppCompatActivity {
                 }
                 outputStream.flush();
             }
-            return outputFile.getAbsolutePath();
+
+            if (outputFile.exists()) {
+                Log.d("EventActivity", "Image saved to: " + outputFile.getAbsolutePath());
+                return outputFile.getAbsolutePath();
+            } else {
+                Log.e("EventActivity", "Image file does not exist after saving.");
+                return null;
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("EventActivity", "Error saving image: " + e.getMessage());
             return null;
         }
     }

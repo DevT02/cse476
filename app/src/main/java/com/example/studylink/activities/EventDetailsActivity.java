@@ -30,6 +30,12 @@ public class EventDetailsActivity extends AppCompatActivity {
         String eventLocation = getIntent().getStringExtra("event_location");
         String eventImageUrl = getIntent().getStringExtra("event_image_url");
 
+        Log.d("EventDetailsActivity", "Received event details - Title: " + eventTitle
+                + ", Description: " + eventDescription
+                + ", Date: " + eventDate
+                + ", Location: " + eventLocation
+                + ", Image URL: " + eventImageUrl);
+
         // Initialize UI elements
         TextView eventTitleTextView = findViewById(R.id.eventTitleDetails);
         TextView eventDescriptionTextView = findViewById(R.id.eventDescriptionDetails);
@@ -46,22 +52,37 @@ public class EventDetailsActivity extends AppCompatActivity {
 
         // Load the event image using Glide if the URL is not empty
         if (eventImageUrl != null && !eventImageUrl.isEmpty()) {
+            Log.d("EventDetailsActivity", "Attempting to load image with URL: " + eventImageUrl);
             // Check if the URL is a network URL or a local file path
-            if (eventImageUrl.startsWith("http")) {
-                // It's a network URL
+            if (eventImageUrl.startsWith("http")) { // Network URL
                 Glide.with(this)
-                        .load(eventImageUrl) // Load network URL directly
-                        .placeholder(R.drawable.baseline_place_24) // Placeholder image
-                        .error(R.drawable.baseline_place_24) // Error image
+                        .load(eventImageUrl)
+                        .placeholder(R.drawable.baseline_place_24)
+                        .error(R.drawable.baseline_place_24)
                         .into(eventImageView);
-            } else {
-                // It's a local file path
-                File imageFile = new File(eventImageUrl); // Convert to File object for local path
+            } else if (eventImageUrl.startsWith("content://")) { // Content URI
                 Glide.with(this)
-                        .load(imageFile) // Load the image from the File object
-                        .placeholder(R.drawable.baseline_place_24) // Placeholder image
-                        .error(R.drawable.baseline_place_24) // Error image
+                        .load(Uri.parse(eventImageUrl)) // Parse the URI
+                        .placeholder(R.drawable.baseline_place_24)
+                        .error(R.drawable.baseline_place_24)
                         .into(eventImageView);
+            } else { // Local file path
+                File imageFile = new File(eventImageUrl);
+                Log.d("EventDetailsActivity", "Loading image from file: " + imageFile.getAbsolutePath());
+                String filePath = eventImageUrl.replace("file://", ""); // Remove the `file://` prefix
+                File imageFileFormatted = new File(filePath); // Create the File object using the corrected path
+                Log.d("EventDetailsActivity", "Formatted file path: " + imageFile.getAbsolutePath());
+                if (imageFileFormatted.exists()) {
+                    Glide.with(this)
+                            .load(imageFileFormatted)
+                            .placeholder(R.drawable.baseline_place_24)
+                            .error(R.drawable.baseline_place_24)
+                            .into(eventImageView);
+                } else {
+                    Log.e("EventDetailsActivity", "Image file does not exist: " + imageFileFormatted.getAbsolutePath());
+                    Toast.makeText(this, "Image file not found, displaying default image.", Toast.LENGTH_SHORT).show();
+                    eventImageView.setImageResource(R.drawable.baseline_place_24);
+                }
             }
         } else {
             // Set a default image if the URL is empty
