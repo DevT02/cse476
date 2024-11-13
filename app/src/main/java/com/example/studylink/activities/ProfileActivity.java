@@ -169,7 +169,7 @@ public class ProfileActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.READ_MEDIA_IMAGES},
                         REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
             } else {
-                openImagePicker();
+                openImagePicker(); // Permission already granted
             }
         } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -178,10 +178,11 @@ public class ProfileActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                         REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
             } else {
-                openImagePicker();
+                openImagePicker(); // Permission already granted
             }
         }
     }
+
 
     // request camera permissions
     private void requestCameraPermission() {
@@ -293,6 +294,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void setImageUri(Uri uri) {
         try {
             Log.d("ProfileActivity", "Attempting to load image Uri: " + uri.toString());
+            grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             ContentResolver contentResolver = getContentResolver();
             InputStream inputStream = contentResolver.openInputStream(uri);
             if (inputStream == null) {
@@ -373,6 +375,16 @@ public class ProfileActivity extends AppCompatActivity {
                             switchGPA.setChecked((Boolean) profileData.get("gpaVisible"));
                             switchAvailability.setChecked((Boolean) profileData.get("availability"));
                             switchNotifications.setChecked((Boolean) profileData.get("notificationsEnabled"));
+
+                            if (profileData.containsKey("profileImageUri")) {
+                                String uriString = (String) profileData.get("profileImageUri");
+                                if (uriString != null && !uriString.isEmpty()) {
+                                    profileImageUri = Uri.parse(uriString);
+                                    setImageUri(profileImageUri); // Load and display the image
+                                } else {
+                                    Log.d("ProfileActivity", "No profile image URI found");
+                                }
+                            }
                         } else {
                             Toast.makeText(ProfileActivity.this, "No profile data found", Toast.LENGTH_SHORT).show();
                         }
