@@ -63,13 +63,7 @@ public class LoginActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-        if (isLoggedIn) {
-            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
+        
 
         // Initialize FirebaseAuth instance
         mAuth = FirebaseAuth.getInstance();
