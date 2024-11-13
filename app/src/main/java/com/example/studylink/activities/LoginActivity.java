@@ -42,10 +42,27 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Check if the user is already logged in
         SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
+
+        // Check if it's the first run
+        boolean isFirstRun = preferences.getBoolean("isFirstRun", true);
+
+        if (isFirstRun) {
+            // Clear SharedPreferences on the first run only
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.clear(); // Clear all data
+            editor.putBoolean("isFirstRun", false); // Set first run to false
+            editor.apply();
+        }
+
         boolean isLoggedIn = preferences.getBoolean("isLoggedIn", false);
 
+        if (isLoggedIn) {
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         if (isLoggedIn) {
             Intent intent = new Intent(LoginActivity.this, HomeActivity.class);

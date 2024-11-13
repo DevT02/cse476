@@ -71,6 +71,7 @@ public class HomeActivity extends AppCompatActivity {
     private void loadUserName() {
         String userId = mAuth.getCurrentUser().getUid();
 
+
         db.collection("profiles").document(userId).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult().exists()) {
