@@ -39,7 +39,8 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         TextView groupTitle = convertView.findViewById(R.id.group_title);
         TextView groupDescription = convertView.findViewById(R.id.group_description);
         TextView groupTime = convertView.findViewById(R.id.group_time);
-        TextView groupLocation = convertView.findViewById(R.id.group_location);ImageView groupImageUrl = convertView.findViewById(R.id.eventImageDetails);
+        TextView groupLocation = convertView.findViewById(R.id.group_location);
+        ImageView groupImageUrl = convertView.findViewById(R.id.eventImageDetails);
 
         // Get the event at the current position
         Event event = events.get(position);
@@ -49,6 +50,18 @@ public class EventListAdapter extends ArrayAdapter<Event> {
         groupDescription.setText(event.getDescription());
         groupTime.setText(event.getDate());
         groupLocation.setText(event.getLocation());
+
+        String imageUrl = event.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(imageUrl) // Load the remote image URL
+                    .placeholder(R.drawable.baseline_place_24) // Placeholder while loading
+                    .error(R.drawable.baseline_place_24) // Error fallback
+                    .into(groupImageUrl);
+        } else {
+            groupImageUrl.setImageResource(R.drawable.baseline_place_24); // Default image for empty or null URLs
+        }
+
 
         convertView.setOnClickListener(v -> {
             Intent intent = new Intent(context, EventDetailsActivity.class);

@@ -3,12 +3,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -16,6 +17,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,7 +38,9 @@ import com.google.android.gms.location.LocationServices;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,6 +54,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+
+import okhttp3.Callback;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class EventActivity extends AppCompatActivity {
 
@@ -126,8 +138,12 @@ public class EventActivity extends AppCompatActivity {
         // Create a new document with auto-generated ID in the "events" collection
         db.collection("events")
                 .add(eventData)
-                .addOnSuccessListener(documentReference ->
-                        Toast.makeText(EventActivity.this, "Event saved successfully", Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(documentReference -> {
+                    // Show success toast
+                    Toast.makeText(EventActivity.this, "Event saved successfully", Toast.LENGTH_SHORT).show();
+                    // Navigate to Dashboard
+                    navigateToDashboard();
+                })
                 .addOnFailureListener(e ->
                         Toast.makeText(EventActivity.this, "Error saving event data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
@@ -177,7 +193,7 @@ public class EventActivity extends AppCompatActivity {
         int day = calendar.get(Calendar.DAY_OF_MONTH);
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year1, month1, dayOfMonth) -> {
-            inputEventDate.setText(String.format("%02d/%02d/%04d", dayOfMonth, month1 + 1, year1));
+            inputEventDate.setText(String.format(Locale.getDefault(),"%02d/%02d/%04d", dayOfMonth, month1 + 1, year1));
         }, year, month, day);
         datePickerDialog.show();
     }
@@ -189,7 +205,7 @@ public class EventActivity extends AppCompatActivity {
         int minute = calendar.get(Calendar.MINUTE);
 
         TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minute1) -> {
-            inputEventTime.setText(String.format("%02d:%02d", hourOfDay, minute1));
+            inputEventTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute1));
         }, hour, minute, true);
         timePickerDialog.show();
     }
@@ -222,10 +238,9 @@ public class EventActivity extends AppCompatActivity {
             Date combinedDate = calendar.getTime();
 
             // Convert the Date object to Firebase Timestamp
-            Timestamp timestamp = new Timestamp(combinedDate);
 
             // Set the event timestamp (or use it as needed)
-            eventTimestamp = timestamp;
+            eventTimestamp = new Timestamp(combinedDate);
 
         } catch (ParseException e) {
             e.printStackTrace();
@@ -253,29 +268,119 @@ public class EventActivity extends AppCompatActivity {
         if (!eventTitle.isEmpty() && !eventDescription.isEmpty() && !eventDate.isEmpty() &&
                 !eventTime.isEmpty() && !eventLocation.isEmpty()) {
 
-            // If an image is selected, save it to internal storage
-            String savedImagePath = null;
+            // Show a progress indicator
+            Toast.makeText(EventActivity.this, "Uploading event...", Toast.LENGTH_SHORT).show();
+
             if (eventImageUri != null) {
-                Log.d("EventActivity", "Attempting to save image with URI: " + eventImageUri); // Log the URI
-                savedImagePath = saveImageToInternalStorage(eventImageUri);
-                if (savedImagePath == null) {
-                    Log.e("EventActivity", "Failed to save image to internal storage."); // Log the failure
-                    Toast.makeText(EventActivity.this, "Failed to save image", Toast.LENGTH_SHORT).show();
-                    return; // Exit if image saving fails
-                }
+                // Upload image to ImgBB
+                uploadImageToImgBB(eventImageUri, uploadedImageUrl -> {
+                    // Save event data with the uploaded image URL
+                    saveEventDataToFirestore(eventTitle, eventDescription, uploadedImageUrl, eventLocation, eventTimestamp);
+                    saveEventToSharedPreferences(eventTitle, eventDescription, eventDate, eventTime, eventLocation, uploadedImageUrl);
+                });
+            } else {
+                // No image selected, proceed with saving event data
+                saveEventDataToFirestore(eventTitle, eventDescription, null, eventLocation, eventTimestamp);
+                saveEventToSharedPreferences(eventTitle, eventDescription, eventDate, eventTime, eventLocation, null);
             }
-
-            // Save event details to SharedPreferences or database with the image path if available
-            saveEventToSharedPreferences(eventTitle, eventDescription, eventDate, eventTime, eventLocation, savedImagePath);
-            Toast.makeText(EventActivity.this, "Event Created Successfully!", Toast.LENGTH_SHORT).show();
-
-            saveEventDataToFirestore(eventTitle, eventDescription, savedImagePath, eventLocation, eventTimestamp);
-            Log.d("EventActivity", "Passing image path to EventDetailsActivity: " + savedImagePath);
-            // Navigate to Dashboard or HomeActivity
-            navigateToDashboard();
 
         } else {
             Toast.makeText(EventActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    // interface for callback
+    public interface ImgBBUploadCallback {
+        void onSuccess(String uploadedImageUrl);
+    }
+
+    // upload to imgBB for firebase
+    private void uploadImageToImgBB(Uri imageUri, ImgBBUploadCallback callback) {
+        String imgbbApiKey;
+        try {
+            imgbbApiKey = getApplicationContext()
+                    .getPackageManager()
+                    .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
+                    .metaData
+                    .getString("com.example.studylink.IMGBB_API_KEY");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            imgbbApiKey = "";
+        }
+        String uploadUrl = "https://api.imgbb.com/1/upload?key=" + imgbbApiKey;
+
+        try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
+            byte[] imageBytes = new byte[Objects.requireNonNull(inputStream).available()];
+            inputStream.read(imageBytes);
+            if (inputStream.available() > 32 * 1024 * 1024) { // 32MB limit
+                Toast.makeText(EventActivity.this, "Image size exceeds limit", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("image", encodedImage)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(uploadUrl)
+                    .post(requestBody)
+                    .build();
+
+            OkHttpClient client = new OkHttpClient();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                    Log.e("ImgBB Upload", "Image upload failed: " + e.getMessage());
+                    runOnUiThread(() ->
+                            Toast.makeText(EventActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show());
+                    retryUpload(imageUri, callback); // Retry on failure
+                }
+
+                @Override
+                public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        try {
+                            String responseBody = response.body().string();
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String uploadedImageUrl = jsonResponse.getJSONObject("data").getString("url");
+                            runOnUiThread(() -> callback.onSuccess(uploadedImageUrl));
+                        } catch (JSONException e) {
+                            Log.e("ImgBB Upload", "Failed to parse response: " + e.getMessage());
+                            runOnUiThread(() ->
+                                    Toast.makeText(EventActivity.this, "Failed to parse response", Toast.LENGTH_SHORT).show());
+                        }
+                    } else {
+                        Log.e("ImgBB Upload", "Upload failed: " + response.code());
+                        runOnUiThread(() ->
+                                Toast.makeText(EventActivity.this, "Upload failed", Toast.LENGTH_SHORT).show());
+                    }
+                }
+            });
+        } catch (IOException e) {
+            Log.e("ImgBB Upload", "Failed to read image: " + e.getMessage());
+            Toast.makeText(EventActivity.this, "Failed to read image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** retry logic for image upload
+    currently retries 3 times before showing a failure message
+    * */
+    private int retryCount = 0;
+    private final int maxRetries = 3;
+
+    private void retryUpload(Uri imageUri, ImgBBUploadCallback callback) {
+        if (retryCount < maxRetries) {
+            retryCount++;
+            Log.d("ImgBB Upload", "Retrying upload... Attempt " + retryCount);
+            uploadImageToImgBB(imageUri, callback);
+        } else {
+            runOnUiThread(() -> {
+                Toast.makeText(EventActivity.this, "Image upload failed after " + maxRetries + " attempts", Toast.LENGTH_SHORT).show();
+                retryCount = 0; // Reset retry count
+            });
         }
     }
 

@@ -1,7 +1,15 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 
 android {
     namespace = "com.example.studylink"
@@ -13,12 +21,15 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            buildConfigField "String", "IMGBB_API_KEY", "\"${localProperties['IMGBB_API_KEY'] ?: ''}\""
+        }
         release {
+            buildConfigField "String", "IMGBB_API_KEY", "\"${localProperties['IMGBB_API_KEY'] ?: ''}\""
             minifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -32,12 +43,11 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 
 dependencies {
-
-    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -47,12 +57,10 @@ dependencies {
     implementation libs.navigation.ui
     implementation libs.firebase.firestore
     implementation libs.firebase.auth
-
+    implementation libs.okhttp
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.glide)
     implementation libs.play.services.location
-
-
 }

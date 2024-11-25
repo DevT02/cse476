@@ -41,6 +41,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- imgbb API key -->
+        <meta-data
+            android:name="com.example.studylink.IMGBB_API_KEY"
+            android:value="${IMGBB_API_KEY}" />
+
         <!-- Other Activities -->
         <activity
             android:name=".activities.SignupActivity"

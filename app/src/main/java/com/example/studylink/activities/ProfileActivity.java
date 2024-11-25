@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,22 +27,37 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.bumptech.glide.Glide;
 import com.example.studylink.HomeActivity;
 import com.example.studylink.R;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 
+// import com.google.firebase.BuildConfig;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseUser;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import okhttp3.Callback;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+
 
 public class ProfileActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 100;
@@ -210,6 +226,104 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    // interface for callback
+    public interface ImgBBUploadCallback {
+        void onSuccess(String uploadedImageUrl);
+    }
+
+    // upload to imgBB for firebase
+    private void uploadImageToImgBB(Uri imageUri, ImgBBUploadCallback callback) {
+        Properties properties = new Properties();
+        try (InputStream input = getAssets().open("local.properties")) {
+            properties.load(input);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        String imgbbApiKey;
+        try {
+            imgbbApiKey = getApplicationContext()
+                    .getPackageManager()
+                    .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
+                    .metaData
+                    .getString("com.example.studylink.IMGBB_API_KEY");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            imgbbApiKey = ""; // or handle the error appropriately
+        }
+
+        String uploadUrl = "https://api.imgbb.com/1/upload?key=" + imgbbApiKey;
+
+        try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[8192]; // 8KB buffer size
+            while ((nRead = Objects.requireNonNull(inputStream).read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            byte[] imageBytes = buffer.toByteArray();
+            if (inputStream.available() > 32 * 1024 * 1024) { // 32MB limit
+                Toast.makeText(ProfileActivity.this, "Image size exceeds limit", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("image", encodedImage)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(uploadUrl)
+                    .post(requestBody)
+                    .build();
+
+            OkHttpClient client = new OkHttpClient();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                    Log.e("ImgBB Upload", "Image upload failed: " + e.getMessage());
+                    runOnUiThread(() ->
+                            Toast.makeText(ProfileActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        String responseBody = Objects.requireNonNull(response.body()).string();
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String uploadedImageUrl = jsonResponse.getJSONObject("data").getString("url");
+
+                            profileImageUri = Uri.parse(uploadedImageUrl);
+                            saveProfileImageUri(profileImageUri);
+
+                            runOnUiThread(() -> {
+                                profilePicture.setImageURI(profileImageUri);
+                                Toast.makeText(ProfileActivity.this, "Image uploaded successfully!", Toast.LENGTH_SHORT).show();
+                            });
+
+                            Log.d("ImgBB Upload", "Image uploaded successfully: " + uploadedImageUrl);
+                        } catch (JSONException e) {
+                            Log.e("ImgBB Upload", "JSON parsing error: " + e.getMessage());
+                            runOnUiThread(() ->
+                                    Toast.makeText(ProfileActivity.this, "Failed to parse upload response", Toast.LENGTH_SHORT).show());
+                        }
+                    } else {
+                        Log.e("ImgBB Upload", "Image upload failed with response code: " + response.code());
+                        runOnUiThread(() ->
+                                Toast.makeText(ProfileActivity.this, "Image upload failed: " + response.message(), Toast.LENGTH_SHORT).show());
+                    }
+                }
+            });
+        } catch (IOException e) {
+            Log.e("ImgBB Upload", "Error reading image file: " + e.getMessage());
+            Toast.makeText(ProfileActivity.this, "Failed to read image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
     // request permissions and handle any errors as necessary
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -320,27 +434,22 @@ public class ProfileActivity extends AppCompatActivity {
 
     // save profile image uri
     private void saveProfileImageUri(Uri uri) {
+        String userId = mAuth.getCurrentUser().getUid(); // Unique user ID
+
+        // Save to Firestore
+        db.collection("profiles").document(userId)
+                .update("profileImageUri", uri.toString())
+                .addOnSuccessListener(aVoid -> Log.d("ProfileActivity", "Profile image URI saved to Firestore"))
+                .addOnFailureListener(e -> Log.e("ProfileActivity", "Failed to save profile image URI to Firestore", e));
+
+        // Save to SharedPreferences
         SharedPreferences preferences = getSharedPreferences("user_profile", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(PROFILE_IMAGE_URI_KEY, uri.toString());
         editor.apply();
-        Log.d("ProfileActivity", "Saved profile image URI: " + uri);
-    }
 
-    // copy image to internal storage
-    private void copyImageToInternalStorage(Uri sourceUri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(sourceUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            inputStream.close();
-            profilePicture.setImageBitmap(bitmap);
-            profileImageUri = sourceUri; // Set URI but do not save yet
-        } catch (Exception e) {
-            Log.e("ProfileActivity", "Error setting image: " + e.getMessage());
-            Toast.makeText(this, "Failed to set image", Toast.LENGTH_SHORT).show();
-        }
+        Log.d("ProfileActivity", "Saved profile image URI: " + uri.toString());
     }
-
 
     // load user data
     private void loadUserData() {
@@ -380,11 +489,15 @@ public class ProfileActivity extends AppCompatActivity {
                                 String uriString = (String) profileData.get("profileImageUri");
                                 if (uriString != null && !uriString.isEmpty()) {
                                     profileImageUri = Uri.parse(uriString);
-                                    setImageUri(profileImageUri); // Load and display the image
+                                    Glide.with(ProfileActivity.this)
+                                            .load(uriString)
+                                            .placeholder(R.drawable.default_profile) // Optional placeholder image
+                                            .into(profilePicture);
                                 } else {
                                     Log.d("ProfileActivity", "No profile image URI found");
                                 }
                             }
+
                         } else {
                             Toast.makeText(ProfileActivity.this, "No profile data found", Toast.LENGTH_SHORT).show();
                         }
@@ -422,9 +535,20 @@ public class ProfileActivity extends AppCompatActivity {
         profileData.put("notificationsEnabled", notificationsEnabled);
 
         // Check if profile image URI is set, and only add it if it's not null
-        if (profileImageUri != null) {
-            profileData.put("profileImageUri", profileImageUri.toString());
+        if (profileImageUri != null && !profileImageUri.toString().startsWith("http")) {
+            // Upload image to ImgBB
+            uploadImageToImgBB(profileImageUri, uploadedImageUrl -> {
+                profileData.put("profileImageUri", uploadedImageUrl);
+                saveProfileImageUri(Uri.parse(uploadedImageUrl)); // Save image and profile data
+            });
+        } else {
+            if (profileImageUri != null) {
+                profileData.put("profileImageUri", profileImageUri.toString());
+            }
+            saveProfileImageUri(Objects.requireNonNull(profileImageUri)); // Save directly if no upload is needed
         }
+
+
 
         // Save data to Firestore under "profiles" collection with userId as the document ID
         db.collection("profiles").document(userId).set(profileData)
@@ -438,33 +562,5 @@ public class ProfileActivity extends AppCompatActivity {
                     Toast.makeText(ProfileActivity.this, "Failed to save profile", Toast.LENGTH_SHORT).show();
                     Log.e("ProfileActivity", "Failed to save profile", e);
                 });
-    }
-
-
-    private void saveImageToInternalStorage(Uri sourceUri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(sourceUri);
-            File destinationFile = new File(getFilesDir(), "profile_picture.jpg");
-
-            if (destinationFile.exists()) {
-                destinationFile.delete();
-            }
-
-            OutputStream outputStream = new FileOutputStream(destinationFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-            outputStream.close();
-            inputStream.close();
-            profileImageUri = Uri.fromFile(destinationFile); // Update with saved image URI
-
-            Log.d("ProfileActivity", "Image saved successfully. URI: " + profileImageUri.toString());
-
-        } catch (Exception e) {
-            Log.e("ProfileActivity", "Error saving image: " + e.getMessage());
-            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
-        }
     }
 }

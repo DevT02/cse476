@@ -108,9 +108,7 @@ public class DashboardActivity extends AppCompatActivity {
                             String date = dateTimestamp != null ? dateTimestamp.toDate().toString() : "No date available";
                             String location = document.getString("location");
                             String imageUrl = document.getString("image");
-                            if (imageUrl != null && !imageUrl.startsWith("file://")) {
-                                imageUrl = "file://" + imageUrl;
-                            }
+
 
                             Event event = new Event(title, description, date, location, imageUrl);
                             events.add(event);

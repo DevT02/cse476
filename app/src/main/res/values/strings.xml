@@ -58,6 +58,7 @@
     <string name="bio_hint">Bio</string>
 
     <!-- Placeholder for formatted -->
+    <string name="location_preview">Preview of location</string>
 
     <!-- Descriptions -->
     <string name="profile_picture_desc">Profile Picture</string>

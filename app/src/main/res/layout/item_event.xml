@@ -1,47 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/group_title"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/group_title"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/group_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/group_description"
-        android:textSize="14sp" />
+        <TextView
+            android:id="@+id/group_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/group_title"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/group_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/group_date_and_time"
-        android:textSize="12sp"
-        android:textColor="#808080" />
+        <TextView
+            android:id="@+id/group_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/group_description"
+            android:textSize="14sp" />
 
-<!--    <TextView-->
-<!--        android:id="@+id/group_distance"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="@string/group_distance"-->
-<!--        android:textSize="12sp"-->
-<!--        android:textColor="#808080" />-->
+        <TextView
+            android:id="@+id/group_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/group_date_and_time"
+            android:textSize="12sp"
+            android:textColor="#808080" />
 
-    <TextView
-        android:id="@+id/group_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/group_location"
-        android:textSize="12sp"
-        android:textColor="#808080" />
+        <TextView
+            android:id="@+id/group_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/group_location"
+            android:textSize="12sp"
+            android:textColor="#808080" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/eventImageDetails"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/location_preview"
+        android:src="@drawable/baseline_location_city_24"
+        android:scaleType="centerCrop" />
 
 </LinearLayout>
