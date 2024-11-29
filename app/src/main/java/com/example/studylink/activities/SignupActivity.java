@@ -1,4 +1,4 @@
-package com.example.studylink.activities;
+package com.fnprrt.studylink.activities;
 
 import android.content.Intent;
 import android.os.Build;
@@ -9,8 +9,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.studylink.HomeActivity;
-import com.example.studylink.R;
+import com.fnprrt.studylink.HomeActivity;
+import com.fnprrt.studylink.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;

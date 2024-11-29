@@ -1,4 +1,4 @@
-package com.example.studylink.activities;
+package com.fnprrt.studylink.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,8 +13,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.studylink.HomeActivity;
-import com.example.studylink.R;
+import com.fnprrt.studylink.HomeActivity;
+import com.fnprrt.studylink.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;

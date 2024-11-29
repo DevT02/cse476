@@ -125,6 +125,7 @@
     <string name="greetings">Greetings.</string>
     <string name="greetingss">Greetings.</string>
     <string name="greetingsss">"Greetings, "</string>
+    <string name="delete_account">DELETE ACCOUNT</string>
 
 
 </resources>

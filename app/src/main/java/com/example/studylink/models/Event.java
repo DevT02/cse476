@@ -1,4 +1,4 @@
-package com.example.studylink.models;
+package com.fnprrt.studylink.models;
 
 public class Event {
     private String title;

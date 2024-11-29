@@ -1,4 +1,4 @@
-package com.example.studylink.activities;
+package com.fnprrt.studylink.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,8 +7,8 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.studylink.HomeActivity;
-import com.example.studylink.R;
+import com.fnprrt.studylink.HomeActivity;
+import com.fnprrt.studylink.R;
 
 public class MainActivity extends AppCompatActivity {
 

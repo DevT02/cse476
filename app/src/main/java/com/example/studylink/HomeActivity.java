@@ -1,4 +1,4 @@
-package com.example.studylink;
+package com.fnprrt.studylink;
 import android.content.SharedPreferences;
 import android.view.Menu;
 import android.app.AlertDialog;
@@ -12,10 +12,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.studylink.activities.DashboardActivity;
-import com.example.studylink.activities.EventActivity;
-import com.example.studylink.activities.LoginActivity;
-import com.example.studylink.activities.ProfileActivity;
+import com.fnprrt.studylink.activities.DashboardActivity;
+import com.fnprrt.studylink.activities.EventActivity;
+import com.fnprrt.studylink.activities.LoginActivity;
+import com.fnprrt.studylink.activities.ProfileActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;

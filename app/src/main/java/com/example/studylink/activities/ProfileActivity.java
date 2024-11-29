@@ -1,4 +1,4 @@
-package com.example.studylink.activities;
+package com.fnprrt.studylink.activities;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -28,8 +28,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
-import com.example.studylink.HomeActivity;
-import com.example.studylink.R;
+import com.fnprrt.studylink.HomeActivity;
+import com.fnprrt.studylink.R;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.io.ByteArrayOutputStream;
@@ -161,6 +161,11 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        //Delete Account Feature
+        Button btnDeleteAccount = findViewById(R.id.btnDeleteAccount);
+        btnDeleteAccount.setOnClickListener(v -> deleteAccount());
+
     }
 
     // Handle the back button click in the toolbar
@@ -245,7 +250,7 @@ public class ProfileActivity extends AppCompatActivity {
                     .getPackageManager()
                     .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
                     .metaData
-                    .getString("com.example.studylink.IMGBB_API_KEY");
+                    .getString("com.fnprrt.studylink.IMGBB_API_KEY");
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             imgbbApiKey = ""; // or handle the error appropriately
@@ -563,4 +568,50 @@ public class ProfileActivity extends AppCompatActivity {
                     Log.e("ProfileActivity", "Failed to save profile", e);
                 });
     }
+
+    private void deleteAccount() {
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        if (user != null) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Account")
+                    .setMessage("Are you sure you want to delete your account? This action cannot be undone.")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        String userId = user.getUid();
+
+                        // Delete user data from Firestore
+                        db.collection("profiles").document(userId).delete()
+                                .addOnSuccessListener(aVoid -> Log.d("ProfileActivity", "User data deleted from Firestore"))
+                                .addOnFailureListener(e -> Log.e("ProfileActivity", "Failed to delete user data", e));
+
+                        // Delete Firebase Authentication account
+                        user.delete()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Log.d("ProfileActivity", "User account deleted.");
+                                        Toast.makeText(ProfileActivity.this, "Account deleted successfully.", Toast.LENGTH_SHORT).show();
+
+                                        // Clear user session and navigate to LoginActivity
+                                        SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = preferences.edit();
+                                        editor.clear();
+                                        editor.apply();
+
+                                        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        Log.e("ProfileActivity", "Account deletion failed", task.getException());
+                                        Toast.makeText(ProfileActivity.this, "Account deletion failed: " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                    .create()
+                    .show();
+        } else {
+            Toast.makeText(this, "No user is currently logged in.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }

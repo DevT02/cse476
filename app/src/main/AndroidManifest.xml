@@ -43,8 +43,8 @@
 
         <!-- imgbb API key -->
         <meta-data
-            android:name="com.example.studylink.IMGBB_API_KEY"
-            android:value="${IMGBB_API_KEY}" />
+            android:name="com.fnprrt.studylink.IMGBB_API_KEY"
+            android:value="APIKEY GOES HERE" />
 
         <!-- Other Activities -->
         <activity

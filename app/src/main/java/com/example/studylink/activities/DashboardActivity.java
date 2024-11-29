@@ -1,4 +1,4 @@
-package com.example.studylink.activities;
+package com.fnprrt.studylink.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,10 +18,10 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.Timestamp;
 
 
-import com.example.studylink.HomeActivity;
-import com.example.studylink.R;
-import com.example.studylink.adapters.EventListAdapter;
-import com.example.studylink.models.Event;
+import com.fnprrt.studylink.HomeActivity;
+import com.fnprrt.studylink.R;
+import com.fnprrt.studylink.adapters.EventListAdapter;
+import com.fnprrt.studylink.models.Event;
 
 import java.util.ArrayList;
 import java.util.List;

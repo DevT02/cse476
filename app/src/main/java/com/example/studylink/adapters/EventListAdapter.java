@@ -1,4 +1,4 @@
-package com.example.studylink.adapters;
+package com.fnprrt.studylink.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,11 +11,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.example.studylink.R;
-import com.example.studylink.models.Event;
+import com.fnprrt.studylink.R;
+import com.fnprrt.studylink.models.Event;
 
 import java.util.List;
-import com.example.studylink.activities.EventDetailsActivity;
+import com.fnprrt.studylink.activities.EventDetailsActivity;
 
 
 public class EventListAdapter extends ArrayAdapter<Event> {

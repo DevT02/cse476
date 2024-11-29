@@ -12,11 +12,11 @@ if (localPropertiesFile.exists()) {
 
 
 android {
-    namespace = "com.example.studylink"
+    namespace = "com.fnprrt.studylink"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.studylink"
+        applicationId = "com.fnprrt.studylink"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

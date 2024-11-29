@@ -1,4 +1,4 @@
-package com.example.studylink.activities;
+package com.fnprrt.studylink.activities;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -31,8 +31,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.studylink.HomeActivity;
-import com.example.studylink.R;
+import com.fnprrt.studylink.HomeActivity;
+import com.fnprrt.studylink.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.Timestamp;
@@ -303,7 +303,7 @@ public class EventActivity extends AppCompatActivity {
                     .getPackageManager()
                     .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
                     .metaData
-                    .getString("com.example.studylink.IMGBB_API_KEY");
+                    .getString("com.fnprrt.studylink.IMGBB_API_KEY");
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             imgbbApiKey = "";
