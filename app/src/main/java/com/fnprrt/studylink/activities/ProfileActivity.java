@@ -541,17 +541,40 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Check if profile image URI is set, and only add it if it's not null
         if (profileImageUri != null && !profileImageUri.toString().startsWith("http")) {
-            // Upload image to ImgBB
+            // Upload image if it is local
             uploadImageToImgBB(profileImageUri, uploadedImageUrl -> {
-                profileData.put("profileImageUri", uploadedImageUrl);
-                saveProfileImageUri(Uri.parse(uploadedImageUrl)); // Save image and profile data
+                profileData.put("profileImageUri", uploadedImageUrl); // Add uploaded image URL to profile data
+                db.collection("profiles").document(userId).set(profileData)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(ProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(ProfileActivity.this, "Failed to save profile", Toast.LENGTH_SHORT).show();
+                            Log.e("ProfileActivity", "Failed to save profile", e);
+                        });
             });
         } else {
+            // Skip image upload and save directly
             if (profileImageUri != null) {
                 profileData.put("profileImageUri", profileImageUri.toString());
             }
-            saveProfileImageUri(Objects.requireNonNull(profileImageUri)); // Save directly if no upload is needed
+
+            db.collection("profiles").document(userId).set(profileData)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(ProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(ProfileActivity.this, "Failed to save profile", Toast.LENGTH_SHORT).show();
+                        Log.e("ProfileActivity", "Failed to save profile", e);
+                    });
         }
+
 
 
 
