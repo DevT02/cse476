@@ -1,5 +1,7 @@
+// EventDetailsActivity.java
 package com.fnprrt.studylink.activities;
 
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,8 +18,12 @@ import com.bumptech.glide.Glide;
 import com.fnprrt.studylink.R;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class EventDetailsActivity extends AppCompatActivity {
+
+    private Button joinLeaveButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +50,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         TextView eventLocationTextView = findViewById(R.id.eventLocationDetails);
         ImageView eventImageView = findViewById(R.id.eventImageDetails);
         Button navigateButton = findViewById(R.id.btnNavigate);
+        joinLeaveButton = findViewById(R.id.btnJoinLeave);
 
         // Set event details to the UI elements
         eventTitleTextView.setText(eventTitle);
@@ -95,6 +103,35 @@ public class EventDetailsActivity extends AppCompatActivity {
                 openLocationInMaps(eventLocation);
             } else {
                 Toast.makeText(EventDetailsActivity.this, "Location not available", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Handle Join/Leave button
+        SharedPreferences prefs = getSharedPreferences("joined_events", MODE_PRIVATE);
+        Set<String> joinedEvents = prefs.getStringSet("joined_event_titles", new HashSet<>());
+
+        if (joinedEvents.contains(eventTitle)) {
+            joinLeaveButton.setText("Leave");
+        } else {
+            joinLeaveButton.setText("Join");
+        }
+
+        joinLeaveButton.setOnClickListener(v -> {
+            SharedPreferences prefs1 = getSharedPreferences("joined_events", MODE_PRIVATE);
+            Set<String> joinedEvents1 = new HashSet<>(prefs1.getStringSet("joined_event_titles", new HashSet<>()));
+
+            if (joinedEvents1.contains(eventTitle)) {
+                // User wants to leave
+                joinedEvents1.remove(eventTitle);
+                prefs1.edit().putStringSet("joined_event_titles", joinedEvents1).apply();
+                joinLeaveButton.setText("Join");
+                Toast.makeText(EventDetailsActivity.this, "You have left the event.", Toast.LENGTH_SHORT).show();
+            } else {
+                // User wants to join
+                joinedEvents1.add(eventTitle);
+                prefs1.edit().putStringSet("joined_event_titles", joinedEvents1).apply();
+                joinLeaveButton.setText("Leave");
+                Toast.makeText(EventDetailsActivity.this, "You have joined the event.", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -55,12 +55,21 @@
             android:textSize="18sp"
             android:layout_marginTop="16dp" />
 
-        <!-- New Button for opening the location in Google Maps -->
+        <!-- Existing Navigate Button -->
         <Button
             android:id="@+id/btnNavigate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/navigate_to_location"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center" />
+
+        <!-- New Join/Leave Button -->
+        <Button
+            android:id="@+id/btnJoinLeave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Join"
             android:layout_marginTop="16dp"
             android:layout_gravity="center" />
 
