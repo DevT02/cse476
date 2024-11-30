@@ -4,7 +4,6 @@ package com.fnprrt.studylink;
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.fnprrt.studylink.activities.DashboardActivity;
@@ -113,11 +113,50 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void showReleaseNotesIfFirstLogin() {
-        // Existing code ...
+        // Check if it's the user's first login by using SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        boolean isFirstLogin = preferences.getBoolean("isFirstLogin", true);
+
+        if (isFirstLogin) {
+            // Inflate the custom layout for the release notes dialog
+            View dialogView = getLayoutInflater().inflate(R.layout.release_notes_dialog, null);
+
+            // Create the dialog and set the custom view
+            androidx.appcompat.app.AlertDialog releaseNotesDialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            // Set up the close button inside the dialog
+            Button closeButton = dialogView.findViewById(R.id.close_button);
+            closeButton.setOnClickListener(v -> releaseNotesDialog.dismiss());
+
+            // Show the dialog
+            releaseNotesDialog.show();
+
+            // Update SharedPreferences to indicate that the release notes have been shown
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("isFirstLogin", false);
+            editor.apply();
+        }
     }
 
     private void logout() {
-        // Existing code ...
+        // Show a toast message for feedback
+        Toast.makeText(HomeActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+
+        // Clear the saved login state in SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("isLoggedIn", false); // Set logged-in state to false
+        editor.apply();
+
+        // Sign out from Firebase Authentication
+        FirebaseAuth.getInstance().signOut();
+
+        // Redirect to LoginActivity
+        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish(); // Close the current activity
     }
 
     private void openSettings() {

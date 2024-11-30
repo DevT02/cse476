@@ -44,8 +44,8 @@
         <!-- imgbb API key -->
         <meta-data
             android:name="com.fnprrt.studylink.IMGBB_API_KEY"
-            android:value="FILLFROMDISCORD" />
-put in the api above and remove this line
+            android:value="bd9cb60b2657e0c1681132740f00e60c" />
+
         <!-- Other Activities -->
         <activity
             android:name=".activities.SignupActivity"
