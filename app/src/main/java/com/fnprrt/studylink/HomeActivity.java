@@ -107,7 +107,7 @@ public class HomeActivity extends AppCompatActivity {
                         }
                     } else {
                         greetingTextView.setText(R.string.greetings);
-                        Toast.makeText(HomeActivity.this, "Failed to load name.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(HomeActivity.this, "Go to settings and update name.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
