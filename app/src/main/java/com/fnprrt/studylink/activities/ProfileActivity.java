@@ -507,7 +507,7 @@ public class ProfileActivity extends AppCompatActivity {
                             Toast.makeText(ProfileActivity.this, "No profile data found", Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        Toast.makeText(ProfileActivity.this, "Failed to load profile data", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(ProfileActivity.this, "Failed to load profile data", Toast.LENGTH_SHORT).show();
                         Log.e("ProfileActivity", "Failed to load profile data", task.getException());
                     }
                 });

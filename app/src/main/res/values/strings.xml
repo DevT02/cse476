@@ -30,7 +30,7 @@
     <string name="sign_up_here">SIGN UP HERE</string>
 
     <!-- Home Screen and Nav -->
-    <string name="greetings_user">GREETINGS, JOHN D.</string>
+    <string name="greetings_user">GREETINGS,</string>
     <string name="settings_desc">Settings</string>
     <string name="nav_explore">Explore Groups</string>
 
